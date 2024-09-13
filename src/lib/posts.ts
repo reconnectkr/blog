@@ -4,12 +4,15 @@ import path from "path";
 
 const postsDirectory = path.join(process.cwd(), "src/public/posts/");
 
-// 포스트 타입 정의
 type Post = {
   slug: string;
   data: {
     title: string;
     date: string;
+    category: {
+      href: string;
+      label: string;
+    };
     coverImage?: string;
   };
   content: string;
@@ -47,7 +50,10 @@ export async function getAllPosts(): Promise<Post[]> {
           data: {
             title: data.title || "Untitled",
             date: data.date || new Date().toISOString(),
-            // 다른 필드들에 대해서도 기본값 제공
+            category: {
+              href: data.category.href || "",
+              label: data.category.label || "",
+            },
           },
           content,
           readingTime: Math.ceil(content.split(" ").length / 200),
@@ -56,7 +62,7 @@ export async function getAllPosts(): Promise<Post[]> {
     );
 
     cachedPosts = allPostsData.sort((a, b) =>
-      a.data.date < b.data.date ? 1 : -1
+      new Date(a.data.date) < new Date(b.data.date) ? 1 : -1
     );
 
     return cachedPosts;

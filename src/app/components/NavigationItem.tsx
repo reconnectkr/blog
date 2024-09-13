@@ -1,16 +1,61 @@
-import Link from "next/link";
+"use client";
 
-interface NavigationItemProps {
+import Link from "next/link";
+import { useState } from "react";
+
+export interface NavigationItemProps {
   href: string;
+  label: string;
+  subItems?: { href: string; label: string }[];
 }
-export default function NavigationItem({ href }: NavigationItemProps) {
+
+export default function NavigationItem({
+  href,
+  label,
+  subItems,
+}: NavigationItemProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  if (subItems) {
+    return (
+      <li>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full text-left py-2 px-4 text-gray-700 hover:bg-gray-200 rounded flex justify-between items-center"
+        >
+          {label}
+          <span
+            className="transform transition-transform duration-200"
+            style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+          >
+            ▼
+          </span>
+        </button>
+        {isOpen && (
+          <ul className="ml-4">
+            {subItems.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="block py-2 px-4 text-gray-600 hover:bg-gray-100 rounded"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </li>
+    );
+  }
+
   return (
     <li>
       <Link
         href={href}
         className="block py-2 px-4 text-gray-700 hover:bg-gray-200 rounded"
       >
-        {href}
+        {label}
       </Link>
     </li>
   );
