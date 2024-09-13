@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getAllPosts } from "@/lib/posts";
 import CategoryFilter from "@/app/components/CategoryFilter";
 
-export default async function PostListPage({
+export default async function Posts({
   params,
 }: {
   params: { category?: string };
@@ -15,7 +15,7 @@ export default async function PostListPage({
 
   const filteredPosts = params.category
     ? posts.filter(
-        (post) => post.data.category?.toLowerCase() === params.category
+        (post) => post.data.category?.href.toLowerCase() === params.category
       )
     : posts;
 
@@ -45,12 +45,14 @@ export default async function PostListPage({
                   </Link>
                 </h3>
                 <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                  {post.data.category} • {post.data.date}
+                  {post.data.category.label} • {post.data.date}
                 </p>
               </div>
               <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
                 <p className="text-sm text-gray-500">
-                  {post.content.substring(0, 200)}...
+                  {post.content.length > 200
+                    ? `${post.content.substring(0, 200)}...`
+                    : post.content}
                 </p>
                 <div className="mt-4">
                   <Link

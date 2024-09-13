@@ -106,11 +106,6 @@ async function AllPosts() {
   );
 }
 
-export const metadata = {
-  title: "내 블로그",
-  description: "마크다운으로 작성된 블로그 포스트들",
-};
-
 export default async function Home() {
   return (
     <div className="flex flex-col gap-10">

@@ -6,7 +6,7 @@ async function getCategories() {
   const categories = Array.from(
     new Set(posts.map((post) => post.data.category))
   ).filter(Boolean);
-  return [...categories];
+  return [{ href: "/posts", label: "전체" }, ...categories];
 }
 
 export default async function SideNavigationBar() {
@@ -18,7 +18,10 @@ export default async function SideNavigationBar() {
       href: "/posts",
       label: "포스트",
       subItems: categories.map((category) => ({
-        href: `/posts/${category.href.toLowerCase()}`,
+        href:
+          category.label === "전체"
+            ? category.href
+            : `/posts/${category.href.toLowerCase()}`,
         label: category.label,
       })),
     },
