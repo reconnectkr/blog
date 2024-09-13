@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getAllPosts } from "@/lib/posts";
 import CategoryFilter from "@/app/components/CategoryFilter";
 
-export default async function Posts({
+export default async function PostsPage({
   params,
 }: {
   params: { category?: string };

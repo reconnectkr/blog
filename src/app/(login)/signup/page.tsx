@@ -1,3 +1,3 @@
-export default function SingUp() {
+export default function SingUpPage() {
   return <div>signup</div>;
 }

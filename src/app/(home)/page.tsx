@@ -106,7 +106,7 @@ async function AllPosts() {
   );
 }
 
-export default async function Home() {
+export default async function HomePage() {
   return (
     <div className="flex flex-col gap-10">
       <MostRecentPost />
