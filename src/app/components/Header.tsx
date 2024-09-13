@@ -7,7 +7,7 @@ export default function Header() {
         <Link href="/" className="text-xl font-bold text-gray-800 max-w-7xl">
           My Blog
         </Link>
-        <button>login</button>
+        <Link href="/login">login</Link>
       </header>
     </div>
   );
