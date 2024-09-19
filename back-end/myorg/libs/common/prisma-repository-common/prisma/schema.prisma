@@ -72,31 +72,59 @@ model Profile {
 }
 
 model Post {
-  id         Int                 @id @default(autoincrement())
-  slug       String
-  title      String
-  content    String
-  authorId   String
-  createdAt  DateTime            @default(now()) @db.Timestamptz(4)
-  updatedAt  DateTime            @updatedAt @db.Timestamptz(4)
+  id       Int    @id @default(autoincrement())
+  slug     String
+  title    String
+  content  String
+  authorId String
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+
   categories CategoriesOnPosts[]
+
+  @@unique([slug])
+  @@index([slug])
+  @@index([title])
+  @@index([authorId])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@map("posts")
 }
 
 model Category {
-  id    Int                 @id @default(autoincrement())
-  name  String
+  id       Int    @id @default(autoincrement())
+  name     String
+  authorId String
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+
   posts CategoriesOnPosts[]
+
+  @@unique([authorId, name])
+  @@index([authorId])
+  @@index([authorId, name])
+  @@index([updatedAt])
+  @@map("categories")
 }
 
 model CategoriesOnPosts {
   postId     Int
-  post       Post     @relation(fields: [postId], references: [id])
   categoryId Int
-  category   Category @relation(fields: [categoryId], references: [id])
-  createdAt  DateTime @default(now()) @db.Timestamptz(4)
-  createdBy  String
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  createdBy String
+
+  post     Post     @relation(fields: [postId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
 
   @@id([postId, categoryId])
+  @@index([postId])
+  @@index([categoryId])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@map("categories_on_posts")
 }
 
 model Coupon {
