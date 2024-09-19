@@ -17,6 +17,8 @@ export interface IPost {
       href: string;
     };
     date: string;
+    coverImage?: string;
   };
   content: string;
+  readingTime?: number;
 }
