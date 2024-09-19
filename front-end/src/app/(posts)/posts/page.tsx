@@ -1,22 +1,84 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { getAllPosts } from "@/lib/posts";
-import CategoryFilter from "@/app/components/CategoryFilter";
 
-export default async function PostsPage({
-  params,
-}: {
-  params: { category?: string };
-}) {
-  const posts = await getAllPosts();
-  const categories = Array.from(
-    new Set(posts.map((post) => post.data.category))
-  ).filter(Boolean);
+// 게시물 타입 정의
+interface Post {
+  slug: string;
+  data: {
+    title: string;
+    category: {
+      label: string;
+      href: string;
+    };
+    date: string;
+  };
+  content: string;
+}
 
-  const filteredPosts = params.category
-    ? posts.filter(
-        (post) => post.data.category?.href.toLowerCase() === params.category
-      )
+// CategoryFilter 프롭스 타입 정의
+interface CategoryFilterProps {
+  categories: string[];
+  selectedCategory: string | null;
+  onCategoryChange: (category: string | null) => void;
+}
+
+// CategoryFilter 컴포넌트 정의
+const CategoryFilter: React.FC<CategoryFilterProps> = ({
+  categories,
+  selectedCategory,
+  onCategoryChange,
+}) => {
+  return (
+    <div className="flex space-x-4 mb-6">
+      <button
+        className={`px-4 py-2 rounded ${
+          !selectedCategory
+            ? "bg-blue-600 text-white"
+            : "bg-gray-200 text-gray-700"
+        }`}
+        onClick={() => onCategoryChange(null)}
+      >
+        전체
+      </button>
+      {categories.map((category) => (
+        <button
+          key={category}
+          className={`px-4 py-2 rounded ${
+            selectedCategory === category
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-700"
+          }`}
+          onClick={() => onCategoryChange(category)}
+        >
+          {category}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+export default function PostsPage() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const allPosts = await getAllPosts();
+      setPosts(allPosts);
+      const uniqueCategories = Array.from(
+        new Set(allPosts.map((post) => post.data.category.label))
+      ).filter((category): category is string => Boolean(category));
+      setCategories(uniqueCategories);
+    };
+    fetchPosts();
+  }, []);
+
+  const filteredPosts = selectedCategory
+    ? posts.filter((post) => post.data.category.label === selectedCategory)
     : posts;
 
   return (
@@ -26,7 +88,8 @@ export default async function PostsPage({
 
         <CategoryFilter
           categories={categories}
-          selectedCategory={params.category}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
         />
 
         <div className="space-y-6 mt-6">
