@@ -1,60 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
-
-interface Post {
-  slug: string;
-  data: {
-    title: string;
-    category: {
-      label: string;
-      href: string;
-    };
-    date: string;
-  };
-  content: string;
-}
-
-interface CategoryFilterProps {
-  categories: string[];
-  selectedCategory: string | null;
-  onCategoryChange: (category: string | null) => void;
-}
-
-const CategoryFilter: React.FC<CategoryFilterProps> = ({
-  categories,
-  selectedCategory,
-  onCategoryChange,
-}) => {
-  return (
-    <div className="flex space-x-4 mb-6">
-      <button
-        className={`px-4 py-2 rounded ${
-          !selectedCategory
-            ? "bg-blue-600 text-white"
-            : "bg-gray-200 text-gray-700"
-        }`}
-        onClick={() => onCategoryChange(null)}
-      >
-        전체
-      </button>
-      {categories.map((category) => (
-        <button
-          key={category}
-          className={`px-4 py-2 rounded ${
-            selectedCategory === category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-          onClick={() => onCategoryChange(category)}
-        >
-          {category}
-        </button>
-      ))}
-    </div>
-  );
-};
+import { useEffect, useState } from "react";
+import { Post } from "../interfaces";
+import PostsListFilter from "./PostsListFilter";
 
 interface PostsListProps {
   initialPosts: Post[];
@@ -81,7 +30,7 @@ export default function PostsList({ initialPosts }: PostsListProps) {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">게시물 목록</h1>
 
-        <CategoryFilter
+        <PostsListFilter
           categories={categories}
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
