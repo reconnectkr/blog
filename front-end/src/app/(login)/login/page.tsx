@@ -1,16 +1,67 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
-  const handleSubmit = (e) => {
+  const router = useRouter();
+
+  const validateForm = () => {
+    if (!username || !password) {
+      setError("모든 필드를 채워주세요.");
+      return false;
+    }
+    if (username.length < 2) {
+      setError("닉네임은 2자 이상이어야 합니다.");
+      return false;
+    }
+    if (password.length < 8) {
+      setError("비밀번호는 8자 이상이어야 합니다.");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 여기에 로그인 로직을 추가할 예정입니다.
-    console.log("Login attempt", { email, password });
+    setError("");
+
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:4000/api/v1/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "로그인 중 오류가 발생했습니다.");
+      }
+
+      console.log("로그인 성공!");
+
+      router.push("/");
+      alert(`${username}님 환영합니다!`);
+    } catch (err) {
+      console.error("로그인 에러: ", err);
+      setError(
+        err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -23,24 +74,32 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {error && (
+            <div
+              className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg"
+              role="alert"
+            >
+              {error}
+            </div>
+          )}
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label
-                htmlFor="email"
+                htmlFor="username"
                 className="block text-sm font-medium text-gray-700"
               >
-                이메일 주소
+                닉네임
               </label>
               <div className="mt-1">
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
+                  id="username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
                   required
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </div>
             </div>
@@ -95,9 +154,12 @@ export default function LoginPage() {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                disabled={loading}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
-                로그인
+                {loading ? "처리 중..." : "로그인"}
               </button>
             </div>
           </form>
