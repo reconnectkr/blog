@@ -3,7 +3,11 @@ import cors from '@fastify/cors';
 import { FastifyInstance } from 'fastify';
 import * as path from 'path';
 /* eslint-disable-next-line */
-export interface AppOptions {}
+export interface AppOptions {
+  protocol: string;
+  host: string;
+  port: number;
+}
 
 export const SECRET = process.env.JWT_SECRET || 'your-secret-key';
 export const ACCESS_TOKEN_LIFE_TIME = '15m';
@@ -15,10 +19,10 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
       info: {
         title: 'API 문서',
         description: 'Fastify API에 대한 Swagger 문서입니다.',
-        version: '1.0.0',
+        version: '0.0.1',
       },
-      host: 'localhost:3000', // 서버 호스트와 포트
-      schemes: ['http'], // 사용할 프로토콜
+      host: `${opts.host}:${opts.port}`, // 서버 호스트와 포트
+      schemes: [opts.protocol], // 사용할 프로토콜
       consumes: ['application/json'],
       produces: ['application/json'],
       // 기타 Swagger 설정 옵션

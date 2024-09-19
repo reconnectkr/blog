@@ -7,5 +7,6 @@ cd $MONOREPO_ROOT
 npm install
 
 cd $PRISMA_DIR
+npx prisma migrate deploy
 npx prisma generate
 cd $PWD
