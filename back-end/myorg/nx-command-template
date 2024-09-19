@@ -1,0 +1,213 @@
+nx g @nx/js:lib \
+  --name warehouse-prisma-repositories \
+  --directory libs/warehouse/repository-implementions/warehouse-prisma-repositories \
+  --importPath @reconnect/warehouse-prisma-repositories
+
+nx g @nx/node:app warehouse-fastify-api --directory=apps/warehouse-fastify-api
+
+nx g move --project warehouse-prisma-repositories libs/warehouse/repository-implementations/warehouse-prisma-repositories
+
+nx g remove --project warehouse-prisma-repositories
+
+nx g @nx/workspace:move \
+  --projectName warehouse-entities \
+  --newProjectName warehouse-entities-buildable \
+  --destination libs/warehouse/domain/warehouse-entities-buildable
+
+nx g @nx/js:lib \
+  --name warehouse-entities \
+  --directory libs/warehouse/domain/warehouse-entities \
+  --importPath @reconnect/warehouse-entities \
+  --publishable
+
+
+nx g @nx/js:lib \
+  --name warehouse-zod-schemas \
+  --directory libs/warehouse/warehouse-zod-schemas \
+  --importPath @reconnect/warehouse-zod-schemas \
+  --publishable
+
+
+nx g @nx/js:lib \
+  --name warehouse-supabase-repositories \
+  --directory libs/warehouse/repository-implementations/warehouse-supabase-repositories \
+  --importPath @reconnect/warehouse-supabase-repositories
+
+
+nx g @nx/node:app test-supabase-usecases --directory=apps/test-supabase-usecases
+
+
+nx g @nx/js:lib \
+  --name point-of-sales-client-usecases \
+  --directory libs/warehouse/features/point-of-sales-feature/client/point-of-sales-client-usecases \
+  --importPath @reconnect/point-of-sales-client-usecases
+
+nx run-many -t build --projects="tag:feat*"
+
+nx g @nx/js:lib \
+  --name sales-entities \
+  --directory libs/warehouse/features/sales/sales-entities \
+  --importPath @reconnect/sales-entities
+
+nx g @nx/js:lib \
+  --name sales-repository-interfaces \
+  --directory libs/warehouse/features/sales/sales-repository-interfaces \
+  --importPath @reconnect/sales-repository-interfaces
+
+nx g @nx/js:lib \
+  --name payment-entities \
+  --directory libs/warehouse/features/payment/payment-entities \
+  --importPath @reconnect/payment-entities
+
+nx g @nx/js:lib \
+  --name payment-repository-interfaces \
+  --directory libs/warehouse/features/payment/payment-repository-interfaces \
+  --importPath @reconnect/payment-repository-interfaces
+
+nx g remove --project point-of-sales-client-usecases
+
+nx g @nx/js:lib \
+  --name point-of-sales-client-usecases \
+  --directory libs/warehouse/features/point-of-sales/client/point-of-sales-client-usecases \
+  --importPath @reconnect/point-of-sales-client-usecases
+
+nx g @nx/js:lib \
+  --name prisma-sales-repositories \
+  --directory libs/warehouse/features/sales/repository-implementations/prisma-sales-repositories \
+  --importPath @reconnect/prisma-sales-repositories
+
+
+nx g @nx/js:lib \
+  --name prisma-repository-common \
+  --directory libs/warehouse/repository-implementations/prisma-repository-common \
+  --importPath @reconnect/prisma-repository-common
+
+nx g @nx/node:app \
+  --name test-point-of-sales-client-usecases \
+  --directory=libs/warehouse/features/point-of-sales/client/test-point-of-sales-client-usecases
+
+nx g @nx/js:lib \
+  --name prisma-payment-repositories \
+  --directory libs/warehouse/features/payment/repository-implementations/prisma-payment-repositories \
+  --importPath @reconnect/prisma-payment-repositories
+
+nx g @nx/js:lib \
+  --name payment-service-interfaces \
+  --directory libs/warehouse/features/payment/payment-service-interfaces \
+  --importPath @reconnect/payment-service-interfaces
+
+nx g @nx/js:lib \
+  --name point-of-sales-http-controllers \
+  --directory libs/warehouse/features/point-of-sales/server/point-of-sales-http-controllers \
+  --importPath @reconnect/point-of-sales-http-controllers
+
+nx g @nx/js:lib \
+  --name point-of-sales-server-usecases \
+  --directory libs/warehouse/features/point-of-sales/server/point-of-sales-server-usecases \
+  --importPath @reconnect/point-of-sales-server-usecases
+
+nx g @nx/node:app \
+  --name test-point-of-sales-server-usecases \
+  --directory=libs/warehouse/features/point-of-sales/server/test-point-of-sales-server-usecases
+
+nx g @nx/js:lib \
+  --name http-controller-common \
+  --directory libs/shared/http-controller-common \
+  --importPath @reconnect/http-controller-common
+
+
+nx g @nx/js:lib \
+  --name point-of-sales-client-usecases \
+  --directory libs/warehouse/features/point-of-sales/client/point-of-sales-client-usecases \
+  --importPath @reconnect/point-of-sales-client-usecases
+
+nx g @nx/js:lib \
+  --name point-of-sales-api-interfaces \
+  --directory libs/warehouse/features/point-of-sales/client/point-of-sales-api-interfaces \
+  --importPath @reconnect/point-of-sales-api-interfaces
+
+
+nx g @nx/js:lib \
+  --name point-of-sales-api-interfaces \
+  --directory libs/warehouse/features/point-of-sales/client/point-of-sales-api-interfaces \
+  --importPath @reconnect/point-of-sales-api-interfaces
+
+nx g @nx/js:lib \
+  --name axios-point-of-sales-api-client  \
+  --directory libs/warehouse/features/point-of-sales/client/point-of-sales-api-implementations/axios-point-of-sales-api-client \
+  --importPath @reconnect/axios-point-of-sales-api-client
+
+nx g @nx/js:lib \
+  --name axios-repository-common \
+  --directory libs/warehouse/repository-implementations/axios-repository-common \
+  --importPath @reconnect/axios-repository-common
+
+nx g @nx/js:lib \
+  --name payment-usecases \
+  --directory libs/warehouse/features/payment/payment-usecases \
+  --importPath @reconnect/payment-usecases
+
+
+nx g @nx/js:lib \
+  --name supabase-payment-repositories \
+  --directory libs/warehouse/features/payment/repository-implementations/supabase-payment-repositories \
+  --importPath @reconnect/supabase-payment-repositories
+
+
+nx g @nx/js:lib \
+  --name supabase-repository-common \
+  --directory libs/warehouse/repository-implementations/supabase-repository-common \
+  --importPath @reconnect/supabase-repository-common
+
+
+nx g @nx/js:lib \
+  --name payment-http-controllers \
+  --directory libs/warehouse/features/payment/payment-http-controllers \
+  --importPath @reconnect/payment-http-controllers
+
+nx g @nx/js:lib \
+  --name payment-server-usecases \
+  --directory libs/warehouse/features/payment/server/payment-server-usecases \
+  --importPath @reconnect/payment-server-usecases
+
+
+nx g @nx/node:app \
+  --name test-payment-server-usecases \
+  --directory=libs/warehouse/features/payment/server/test-payment-server-usecases
+
+
+nx g @nx/js:lib \
+  --name payment-api-interfaces \
+  --directory libs/warehouse/features/payment/client/payment-api-interfaces \
+  --importPath @reconnect/payment-api-interfaces
+
+nx g @nx/js:lib \
+  --name axios-payment-api-client \
+  --directory libs/warehouse/features/payment/client/payment-api-implementations/axios-payment-api-client \
+  --importPath @reconnect/axios-payment-api-client
+
+
+nx g @nx/node:app fastify-api \
+  --directory=apps/fastify-api
+
+nx g @nx/js:lib \
+  --name prisma-repository-common \
+  --directory libs/prisma-repository-common \
+  --importPath @reconnect/prisma-repository-common
+
+nx g @nx/js:lib \
+  --name coupon-dto \
+  --directory libs/feat/coupon-dto \
+  --importPath @reconnect/coupon-dto
+
+
+nx g @nx/js:lib \
+  --name zod-common \
+  --directory libs/common/zod-common \
+  --importPath @reconnect/zod-common
+
+nx g move --project prisma-repository-common \
+  libs/common/prisma-repository-common
+
+nx g @nx/react:app my-react-app \
+  --directory=apps/my-react-app

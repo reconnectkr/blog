@@ -1,0 +1,33 @@
+{
+  "name": "coupon-dto",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/feat/coupon-dto/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/feat/coupon-dto",
+        "main": "libs/feat/coupon-dto/src/index.ts",
+        "tsConfig": "libs/feat/coupon-dto/tsconfig.lib.json",
+        "assets": ["libs/feat/coupon-dto/*.md"],
+        "format": ["cjs"]
+      }
+    },
+    "build:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p {projectRoot}/tsconfig.spec.json"
+      }
+    },
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../coverage/libs/feat/coupon-dto"
+      }
+    }
+  }
+}

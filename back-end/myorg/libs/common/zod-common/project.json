@@ -1,0 +1,33 @@
+{
+  "name": "zod-common",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/common/zod-common/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/common/zod-common",
+        "main": "libs/common/zod-common/src/index.ts",
+        "tsConfig": "libs/common/zod-common/tsconfig.lib.json",
+        "assets": ["libs/common/zod-common/*.md"],
+        "format": ["cjs"]
+      }
+    },
+    "build:test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p {projectRoot}/tsconfig.spec.json"
+      }
+    },
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../coverage/libs/common/zod-common"
+      }
+    }
+  }
+}

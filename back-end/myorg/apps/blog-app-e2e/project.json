@@ -1,0 +1,9 @@
+{
+  "name": "blog-app-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/blog-app-e2e/src",
+  "tags": [],
+  "implicitDependencies": ["blog-app"],
+  "// targets": "to see all targets run: nx show project blog-app-e2e --web",
+  "targets": {}
+}
