@@ -1,0 +1,836 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Department {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+
+  users           Profile[]
+  pointOfSale     PointOfSale[]
+  inventoryPlaces InventoryPlace[]
+
+  @@unique([name])
+  @@index([name])
+  @@index([description])
+  @@map("departments")
+}
+
+model User {
+  id        String   @id
+  email     String
+  username  String
+  password  String
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+  active    Boolean  @default(true)
+
+  profile Profile?
+
+  @@unique([email])
+  @@unique([username])
+  @@index([email])
+  @@index([username])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([active])
+  @@map("users")
+}
+
+model Profile {
+  userId    String   @id
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  name      String
+  mobile    String?
+  photo     String?
+
+  departmentId Int?
+  department   Department? @relation(fields: [departmentId], references: [id])
+
+  @@unique([userId])
+  @@unique([mobile])
+  @@index([name])
+  @@index([mobile])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@map("profiles")
+}
+
+model Coupon {
+  id          Int       @id @default(autoincrement())
+  code        String
+  issuedBy    String
+  // issuer      User      @relation("issuer", fields: [issuedBy], references: [id])
+  issuedAt    DateTime  @db.Timestamptz(4)
+  expiredAt   DateTime  @db.Timestamptz(4)
+  price       Decimal?  @db.Decimal(12, 2)
+  rate        Decimal?  @db.Decimal(12, 2)
+  retrievedAt DateTime? @db.Timestamptz(4)
+  retrievedBy String?
+  // retriever   User?     @relation("retriever", fields: [retrievedBy], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  payments Payment[]
+
+  @@unique([code])
+  @@index([code])
+  @@index([issuedBy])
+  @@index([issuedAt])
+  @@index([expiredAt])
+  @@index([price])
+  @@index([rate])
+  @@index([retrievedAt])
+  @@index([retrievedBy])
+  @@map("coupons")
+}
+
+// weight, volume, length, area, temperature, time, currency, etc
+model UnitType {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  units       Unit[]
+
+  @@unique([name])
+  @@index([name])
+  @@map("unit_types")
+}
+
+model Unit {
+  id          Int      @id @default(autoincrement())
+  name        String
+  typeId      Int
+  type        UnitType @relation(fields: [typeId], references: [id])
+  description String?
+
+  inventoryItems InventoryItem[]
+  payments       Payment[]
+
+  @@unique([name])
+  @@index([name])
+  @@index([typeId])
+  @@map("units")
+}
+
+model InventoryPlace {
+  id             Int              @id @default(autoincrement())
+  name           String
+  departmentId   Int
+  department     Department       @relation(fields: [departmentId], references: [id])
+  description    String?
+  InventoryEvent InventoryEvent[]
+
+  @@unique([name])
+  @@index([name])
+  @@index([departmentId])
+  @@map("inventory_places")
+}
+
+model InventoryItemCategoryType {
+  id                      Int                     @id @default(autoincrement())
+  name                    String
+  // 대분류, 중분류, 소분류
+  inventoryItemCategories InventoryItemCategory[]
+
+  @@unique([name])
+  @@index([name])
+  @@map("inventory_item_category_types")
+}
+
+model InventoryItemCategory {
+  id     Int                       @id @default(autoincrement())
+  name   String
+  code   String // ${parentCode}-001
+  typeId Int
+  type   InventoryItemCategoryType @relation(fields: [typeId], references: [id])
+
+  parentId       Int?
+  parent         InventoryItemCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children       InventoryItemCategory[] @relation("CategoryHierarchy")
+  inventoryItems InventoryItem[]
+
+  @@unique([parentId, name])
+  @@unique([code])
+  @@index([typeId])
+  @@index([parentId])
+  @@index([code])
+  @@index([name])
+  @@map("inventory_item_categories")
+}
+
+model InventoryItem {
+  id              Int     @id @default(autoincrement())
+  code            String
+  name            String
+  specification   String
+  manufacturer    String
+  inventoryUnitId Int
+  inventoryUnit   Unit    @relation(fields: [inventoryUnitId], references: [id])
+  // tax                  String
+  description     String?
+  barcode         String?
+  active          Boolean @default(true)
+
+  categoryId Int?
+  category   InventoryItemCategory? @relation(fields: [categoryId], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  createdBy String
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+  updatedBy String
+
+  productInventoryItems ProductInventoryItem[]
+  inventoryEvents       InventoryEvent[]
+
+  @@unique([name, specification])
+  @@unique([code])
+  @@index([code])
+  @@index([name])
+  @@index([specification])
+  @@index([manufacturer])
+  @@index([inventoryUnitId])
+  @@index([description])
+  @@index([barcode])
+  @@index([active])
+  @@index([categoryId])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([updatedAt])
+  @@index([updatedBy])
+  @@map("inventory_items")
+}
+
+model Product {
+  id    Int     @id @default(autoincrement())
+  name  String
+  price Decimal @db.Decimal(12, 2)
+
+  description String?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  createdBy String
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+  updatedBy String
+
+  productInventoryItems ProductInventoryItem[]
+  pointOfSaleProducts   PointOfSaleProduct[]
+  OrderItem             OrderItem[]
+  InvoiceItem           InvoiceItem[]
+
+  @@unique([name])
+  @@index([name])
+  @@index([price])
+  @@index([description])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([updatedAt])
+  @@index([updatedBy])
+  @@map("products")
+}
+
+model ProductInventoryItem {
+  productId       Int
+  product         Product       @relation(fields: [productId], references: [id])
+  inventoryItemId Int
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  quantity        Decimal       @default(1) @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  createdBy String
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+  updatedBy String
+
+  @@id([productId, inventoryItemId])
+  @@index([productId])
+  @@index([inventoryItemId])
+  @@index([quantity])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([updatedAt])
+  @@index([updatedBy])
+  @@map("product_inventory_items")
+}
+
+model PointOfSale {
+  id           Int        @id @default(autoincrement())
+  name         String
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id])
+  description  String?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  createdBy String
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+  updatedBy String
+
+  pointOfSaleProducts PointOfSaleProduct[]
+  orderSessions       OrderSession[]
+  payments            Payment[]
+
+  @@unique([name])
+  @@index([name])
+  @@index([departmentId])
+  @@index([description])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([updatedAt])
+  @@index([updatedBy])
+  @@map("point_of_sales")
+}
+
+model PointOfSaleProduct {
+  pointOfSaleId Int
+  pointOfSale   PointOfSale @relation(fields: [pointOfSaleId], references: [id])
+  productId     Int
+  product       Product     @relation(fields: [productId], references: [id])
+  createdAt     DateTime    @default(now()) @db.Timestamptz(4)
+  createdBy     String
+
+  @@id([pointOfSaleId, productId])
+  @@index([pointOfSaleId])
+  @@index([productId])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@map("point_of_sales_products")
+}
+
+model OrderSession {
+  id        Int       @id @default(autoincrement())
+  startTime DateTime  @default(now()) @db.Timestamptz(4)
+  endTime   DateTime? @db.Timestamptz(4)
+
+  pointOfSaleId Int
+  pointOfSale   PointOfSale @relation(fields: [pointOfSaleId], references: [id])
+  // table_id Int?
+  // customer_id Int?
+
+  createdAt      DateTime         @default(now()) @db.Timestamptz(4)
+  createdBy      String
+  updatedAt      DateTime?        @updatedAt @db.Timestamptz(4)
+  updatedBy      String?
+  PaymentVoucher PaymentVoucher[]
+  Order          Order[]
+  Invoice        Invoice[]
+
+  @@index([startTime])
+  @@index([endTime])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([updatedAt])
+  @@index([updatedBy])
+  @@map("order_sessions")
+}
+
+model PaymentType {
+  id       Int       @id @default(autoincrement())
+  name     String
+  // PAYMENT, CANCEL_PAYMENT,
+  // REFUND?, ADJUSTMENT?
+  payments Payment[]
+
+  @@unique([name])
+  @@index([name])
+  @@map("payment_types")
+}
+
+model PaymentMethod {
+  // 지불
+  id       Int       @id @default(autoincrement())
+  name     String
+  // CASH, CREDIT_CARD, CHECK_CARD, BANK_TRANSFER, COUPON, POINT, ETC
+  payments Payment[]
+
+  @@unique([name])
+  @@index([name])
+  @@map("payment_methods")
+}
+
+model PaymentTiming {
+  // 지불
+  id       Int       @id @default(autoincrement())
+  name     String
+  // PREPAID, POSTPAID
+  payments Payment[]
+
+  @@unique([name])
+  @@index([name])
+  @@map("payment_timings")
+}
+
+model PaymentVoucher {
+  id             Int          @id @default(autoincrement())
+  orderSessionId Int
+  orderSession   OrderSession @relation(fields: [orderSessionId], references: [id])
+
+  totalAmount Decimal?  @db.Decimal(12, 2)
+  payments    Payment[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  createdBy String
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+  updatedBy String
+
+  @@index([orderSessionId])
+  @@index([totalAmount])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([updatedAt])
+  @@index([updatedBy])
+  @@map("payment_vouchers")
+}
+
+model Payment {
+  id            Int           @id @default(autoincrement())
+  typeId        Int
+  type          PaymentType   @relation(fields: [typeId], references: [id])
+  timingId      Int
+  timing        PaymentTiming @relation(fields: [timingId], references: [id])
+  methodId      Int
+  method        PaymentMethod @relation(fields: [methodId], references: [id])
+  occuredAt     DateTime      @default(now()) @db.Timestamptz(3)
+  pointOfSaleId Int
+  pointOfSale   PointOfSale   @relation(fields: [pointOfSaleId], references: [id])
+
+  voucherId Int
+  voucher   PaymentVoucher @relation(fields: [voucherId], references: [id])
+
+  amountUnitId Int
+  amountUnit   Unit    @relation(fields: [amountUnitId], references: [id])
+  amount       Decimal @db.Decimal(12, 2)
+  remarks      String?
+
+  // coupon
+  couponCode String?
+  couponId   Int?
+  coupon     Coupon? @relation(fields: [couponId], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  createdBy String
+
+  @@index([typeId])
+  @@index([timingId])
+  @@index([methodId])
+  @@index([occuredAt])
+  @@index([pointOfSaleId])
+  @@index([voucherId])
+  @@index([amount])
+  @@index([remarks])
+  @@index([couponCode])
+  @@index([couponId])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@map("payments")
+}
+
+model Order {
+  id             Int          @id @default(autoincrement())
+  orderSessionId Int
+  orderSession   OrderSession @relation(fields: [orderSessionId], references: [id])
+
+  orderedAt   DateTime @default(now()) @db.Timestamptz(3)
+  orderNumber String?
+
+  subTotal      Decimal? @db.Decimal(12, 2)
+  discountTotal Decimal? @db.Decimal(12, 2)
+  taxTotal      Decimal? @db.Decimal(12, 2)
+  totalAmount   Decimal? @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  createdBy String
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+  updatedBy String
+
+  OrderItem       OrderItem[]
+  PriceAdjustment PriceAdjustment[]
+
+  @@unique([orderNumber])
+  @@index([orderSessionId])
+  @@index([orderedAt])
+  @@index([orderNumber])
+  @@index([subTotal])
+  @@index([discountTotal])
+  @@index([taxTotal])
+  @@index([totalAmount])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([updatedAt])
+  @@index([updatedBy])
+  @@map("orders")
+}
+
+model OrderItem {
+  id            Int     @id @default(autoincrement())
+  orderId       Int
+  order         Order   @relation(fields: [orderId], references: [id])
+  // need to make a snapshot product
+  productId     Int
+  product       Product @relation(fields: [productId], references: [id])
+  productName   String
+  unitPrice     Decimal @db.Decimal(12, 2)
+  quantity      Decimal @default(1) @db.Decimal(12, 2)
+  discountTotal Decimal @db.Decimal(12, 2)
+  taxTotal      Decimal @db.Decimal(12, 2)
+  totalAmount   Decimal @db.Decimal(12, 2)
+  remarks       String?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  createdBy String
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+  updatedBy String
+
+  PriceAdjustment PriceAdjustment[]
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([productName])
+  @@index([unitPrice])
+  @@index([quantity])
+  @@index([discountTotal])
+  @@index([taxTotal])
+  @@index([totalAmount])
+  @@index([remarks])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([updatedAt])
+  @@index([updatedBy])
+  @@map("order_items")
+}
+
+model Invoice {
+  id             Int          @id @default(autoincrement())
+  orderSessionId Int
+  orderSession   OrderSession @relation(fields: [orderSessionId], references: [id])
+
+  issuedAt      DateTime @default(now()) @db.Timestamptz(3)
+  invoiceNumber String?
+
+  subTotal      Decimal? @db.Decimal(12, 2)
+  discountTotal Decimal? @db.Decimal(12, 2)
+  taxTotal      Decimal? @db.Decimal(12, 2)
+  totalAmount   Decimal? @db.Decimal(12, 2)
+
+  createdAt       DateTime          @default(now()) @db.Timestamptz(4)
+  createdBy       String
+  updatedAt       DateTime?         @updatedAt @db.Timestamptz(4)
+  updatedBy       String?
+  InvoiceItem     InvoiceItem[]
+  PriceAdjustment PriceAdjustment[]
+
+  @@unique([invoiceNumber])
+  @@index([orderSessionId])
+  @@index([issuedAt])
+  @@index([invoiceNumber])
+  @@index([subTotal])
+  @@index([discountTotal])
+  @@index([taxTotal])
+  @@index([totalAmount])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([updatedAt])
+  @@index([updatedBy])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id            Int     @id @default(autoincrement())
+  invoiceId     Int
+  invoice       Invoice @relation(fields: [invoiceId], references: [id])
+  // need to make a snapshot product
+  productId     Int
+  product       Product @relation(fields: [productId], references: [id])
+  productName   String
+  unitPrice     Decimal @db.Decimal(12, 2)
+  quantity      Decimal @default(1) @db.Decimal(12, 2)
+  discountTotal Decimal @db.Decimal(12, 2)
+  taxTotal      Decimal @db.Decimal(12, 2)
+  totalAmount   Decimal @db.Decimal(12, 2)
+  remarks       String?
+
+  createdAt       DateTime          @default(now()) @db.Timestamptz(4)
+  createdBy       String
+  updatedAt       DateTime?         @updatedAt @db.Timestamptz(4)
+  updatedBy       String?
+  PriceAdjustment PriceAdjustment[]
+
+  @@index([invoiceId])
+  @@index([productId])
+  @@index([productName])
+  @@index([unitPrice])
+  @@index([quantity])
+  @@index([discountTotal])
+  @@index([taxTotal])
+  @@index([totalAmount])
+  @@index([remarks])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([updatedAt])
+  @@index([updatedBy])
+  @@map("invoice_items")
+}
+
+model PriceAdjustmentType {
+  id   Int    @id @default(autoincrement())
+  name String
+  // DISCOUNT_FIXED_AMOUNT, DISCOUNT_RATE, TAX_FIXED_AMOUNT, TAX_RATE
+
+  PriceAdjustmentPolicy PriceAdjustmentPolicy[]
+
+  @@unique([name])
+  @@index([name])
+  @@map("price_adjustment_types")
+}
+
+model PriceAdjustmentPolicy {
+  id          Int                 @id @default(autoincrement())
+  name        String
+  description String?
+  typeId      Int
+  type        PriceAdjustmentType @relation(fields: [typeId], references: [id])
+
+  adjustmentAmount Decimal? @db.Decimal(12, 2)
+  adjustmentRate   Decimal? @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  createdBy String
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+  updatedBy String
+
+  PriceAdjustment PriceAdjustment[]
+
+  @@index([typeId])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([updatedAt])
+  @@index([updatedBy])
+  @@map("price_adjustment_policies")
+}
+
+model PriceAdjustable {
+  id   Int    @id @default(autoincrement())
+  name String
+  // Order, OrderItem, Invoice, InvoiceItem
+
+  PriceAdjustment PriceAdjustment[]
+
+  @@unique([name])
+  @@index([name])
+  @@map("price_adjustables")
+}
+
+model PriceAdjustment {
+  id                      Int                   @id @default(autoincrement())
+  priceAdjustmentPolicyId Int
+  priceAdjustmentPolicy   PriceAdjustmentPolicy @relation(fields: [priceAdjustmentPolicyId], references: [id])
+  // need to make a snapshot priceAdjustmentPolicy
+  policyName              String
+  policyTypeId            Int
+  policyAdjustmentAmount  Decimal?              @db.Decimal(12, 2)
+  policyAdjustmentRate    Decimal?              @db.Decimal(12, 2)
+
+  priceAdjustableId Int
+  priceAdjustable   PriceAdjustable @relation(fields: [priceAdjustableId], references: [id])
+
+  orderItemId Int?
+  orderItem   OrderItem? @relation(fields: [orderItemId], references: [id])
+
+  orderId Int?
+  order   Order? @relation(fields: [orderId], references: [id])
+
+  invoiceItemId Int?
+  invoiceItem   InvoiceItem? @relation(fields: [invoiceItemId], references: [id])
+
+  invoiceId Int?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  createdBy String
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+  updatedBy String
+
+  @@index([priceAdjustmentPolicyId])
+  @@index([policyName])
+  @@index([priceAdjustableId])
+  @@index([orderItemId])
+  @@index([orderId])
+  @@index([invoiceItemId])
+  @@index([invoiceId])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([updatedAt])
+  @@index([updatedBy])
+  @@map("price_adjustments")
+}
+
+model InventoryEventType {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  // 'VOUCHER', deprecated
+  // 'CLOSING', deprecated
+  // 'INITIAL_STOCK',
+  // 'STOCK_RECEIPT',
+  // 'TRANSFER_IN',
+  // 'PRODUCTION',
+  // 'CUSTOMER_RETURN',
+  // 'ADJUSTMENT',
+  // 'SALE',
+  // 'CONSUMPTION',
+  // 'TRANSFER_OUT',
+  // 'SUPPLIER_RETURN',
+  // 'EXPIRED',
+  // 'THEFT_OR_LOSS',
+  // 'DISPOSAL',
+  InventoryEvent InventoryEvent[]
+
+  @@map("inventory_event_types")
+}
+
+model InventoryEvent {
+  id     Int                @id @default(autoincrement())
+  typeId Int
+  type   InventoryEventType @relation(fields: [typeId], references: [id])
+
+  occuredAt        DateTime       @default(now()) @db.Timestamptz(4)
+  inventoryPlaceId Int
+  inventoryPlace   InventoryPlace @relation(fields: [inventoryPlaceId], references: [id])
+
+  inventoryItemId Int
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  // inventoryUnitId를 snapshot으로 저장합니다.
+  inventoryUnitId Int
+
+  // quantity unit은 inventoryItem.inventoryUnit
+  // post_transaction_quantity = pre_transaction_quantity + quantity
+  // quantity값은 type에 따라서 재고량 증가 이벤트는 양수, 재고량 감소 이벤트는 음수 입니다.
+  quantityUnitId Int?
+
+  // 1 [quantity_unit] -> conversion_factor [inventory_unit] 변환
+  // 1 박스 = 30 병
+  conversionFactor Decimal? @db.Decimal(12, 6)
+  quantity         Decimal? @db.Decimal(20, 8)
+
+  // 재고 가치 단위, "원"
+  // 재고 가치, 재고가치 계산방법에 의해서 계산된다.
+  valueUnitId Int?
+  value       Decimal? @db.Decimal(12, 6)
+
+  remarks String?
+
+  // 입고, 사입반품
+  vendorId Int?
+  // vendor    Vendor? @relation(fields: [vendor_id], references: [id])
+
+  // 구매 가격 + 할인가격 + 부가가치세 + 관세 + 운송비 + 보험료 + 취급 비용 = 총 재고 가격
+  // 할인가격은 음수로 저장하세요!
+  amountUnitId        Int?
+  subAmount           Decimal? @db.Decimal(12, 6)
+  discountAmount      Decimal? @db.Decimal(12, 6)
+  valueAddedTaxAmount Decimal? @db.Decimal(12, 6)
+  otherTaxAmount      Decimal? @db.Decimal(12, 6)
+  otherAmount         Decimal? @db.Decimal(12, 6)
+  totalAmount         Decimal? @db.Decimal(12, 6)
+
+  // 재고이동
+  fromInventoryPlaceId Int?
+  toInventoryPlaceId   Int?
+
+  // 사입반품
+  reason String?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  createdBy String
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+  updatedBy String
+
+  // decrease_relations InventoryIncreaseDecreaseRelation[] @relation("decrease_inventory_event")
+  // increase_relations InventoryIncreaseDecreaseRelation[] @relation("increase_inventory_event")
+
+  // parent_relations InventoryEventRelation[] @relation("parent_event")
+  // child_relations  InventoryEventRelation[] @relation("child_event")
+  // inventoryLot     InventoryLot?
+
+  @@index([typeId])
+  @@index([occuredAt])
+  @@index([inventoryPlaceId])
+  @@index([inventoryItemId])
+  @@index([quantity])
+  @@index([remarks])
+  @@index([vendorId])
+  @@index([fromInventoryPlaceId])
+  @@index([toInventoryPlaceId])
+  @@index([reason])
+  @@map("inventory_events")
+}
+
+// model InventoryEventRelationType {
+//   id   Int    @id @default(autoincrement())
+//   name String @unique
+//   // 'VOUCHER',
+
+//   inventory_event_relations InventoryEventRelation[]
+
+//   @@map("inventory_event_relation_types")
+// }
+
+// model InventoryEventRelation {
+//   parent_event_id Int
+//   child_event_id  Int
+//   type_id         Int
+//   parent_event    InventoryEvent             @relation("parent_event", fields: [parent_event_id], references: [id])
+//   child_event     InventoryEvent             @relation("child_event", fields: [child_event_id], references: [id])
+//   type            InventoryEventRelationType @relation(fields: [type_id], references: [id])
+
+//   @@id([parent_event_id, child_event_id])
+//   @@map("inventory_event_relations")
+// }
+
+// /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+// model InventoryIncreaseDecreaseRelation {
+//   increase_event_id  Int
+//   decrease_event_id  Int
+//   used_quantity_unit String
+//   used_quantity      Decimal
+//   used_value_unit    String
+//   used_value         Decimal
+
+//   created_at  DateTime  @default(now()) @db.Timestamptz(6)
+//   created_by  String
+//   modified_at DateTime? @db.Timestamptz(6)
+//   modified_by String?
+
+//   decrease_event InventoryEvent @relation("decrease_inventory_event", fields: [decrease_event_id], references: [id])
+//   increase_event InventoryEvent @relation("increase_inventory_event", fields: [increase_event_id], references: [id])
+
+//   @@id([increase_event_id, decrease_event_id])
+//   @@index([created_at], map: "idx_inv_inc_dec_mappings_created_at")
+//   @@index([created_by], map: "idx_inv_inc_dec_mappings_created_by")
+//   @@index([decrease_event_id], map: "idx_inv_inc_dec_mappings_decrease_event")
+//   @@index([increase_event_id], map: "idx_inv_inc_dec_mappings_increase_event")
+//   @@index([modified_at], map: "idx_inv_inc_dec_mappings_modified_at")
+//   @@index([modified_by], map: "idx_inv_inc_dec_mappings_modified_by")
+//   @@map("inventory_increase_decrease_relations")
+// }
+
+// model InventoryLot {
+//   inventoryEventId   Int            @id
+//   inventoryEvent     InventoryEvent @relation(fields: [inventoryEventId], references: [id])
+//   remaining_quantity Decimal
+//   remaining_value    Decimal
+
+//   @@index([remaining_quantity])
+//   @@index([remaining_value])
+//   @@map("inventory_lots")
+// }
