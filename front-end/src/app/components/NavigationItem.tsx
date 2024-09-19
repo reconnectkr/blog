@@ -2,18 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-
-export interface NavigationItemProps {
-  href: string;
-  label: string;
-  subItems?: { href: string; label: string }[];
-}
+import { INavigationItem } from "../interfaces";
 
 export default function NavigationItem({
-  href,
-  label,
+  category,
   subItems,
-}: NavigationItemProps) {
+}: INavigationItem) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (subItems) {
@@ -23,7 +17,7 @@ export default function NavigationItem({
           onClick={() => setIsOpen(!isOpen)}
           className="w-full text-left py-2 px-4 text-gray-700 hover:bg-gray-200 rounded flex justify-between items-center"
         >
-          {label}
+          {category.label}
           <span
             className="transform transition-transform duration-200"
             style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
@@ -52,10 +46,10 @@ export default function NavigationItem({
   return (
     <li>
       <Link
-        href={href}
+        href={category.href}
         className="block py-2 px-4 text-gray-700 hover:bg-gray-200 rounded"
       >
-        {label}
+        {category.label}
       </Link>
     </li>
   );

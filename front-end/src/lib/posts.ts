@@ -1,37 +1,23 @@
+import { IPost } from "@/app/interfaces";
 import fs from "fs/promises";
 import matter from "gray-matter";
 import path from "path";
 
 const postsDirectory = path.join(process.cwd(), "src/public/posts/");
 
-type Post = {
-  slug: string;
-  data: {
-    title: string;
-    date: string;
-    category: {
-      href: string;
-      label: string;
-    };
-    coverImage?: string;
-  };
-  content: string;
-  readingTime: number;
-};
+let cachedPosts: IPost[] = [];
 
-let cachedPosts: Post[] = [];
-
-export async function getMostRecentPost(): Promise<Post | undefined> {
+export async function getMostRecentPost(): Promise<IPost | undefined> {
   const posts = await getAllPosts();
   return posts[0];
 }
 
-export async function getRecentPosts(count: number): Promise<Post[]> {
+export async function getRecentPosts(count: number): Promise<IPost[]> {
   const posts = await getAllPosts();
   return posts.slice(0, count);
 }
 
-export async function getAllPosts(): Promise<Post[]> {
+export async function getAllPosts(): Promise<IPost[]> {
   if (cachedPosts.length > 0) {
     return cachedPosts;
   }
@@ -76,14 +62,20 @@ export function invalidateCache() {
   cachedPosts = [];
 }
 
-export async function getPostBySlug(slug: string): Promise<Post | undefined> {
+export async function getPostBySlug(slug: string): Promise<IPost | undefined> {
   const posts = await getAllPosts();
   return posts.find((post) => post.slug === slug);
 }
 
-export async function getPostsByCategory(
-  category: string
-): Promise<Post | undefined> {
+export async function getAllCategories() {
   const posts = await getAllPosts();
-  return posts.find((post) => post.data.category.label === category);
+  const categories = Array.from(
+    new Set(posts.map((post) => post.data.category))
+  ).filter(Boolean);
+  return [{ href: "/posts", label: "전체" }, ...categories];
+}
+
+export async function getPostsByCategory(href: string): Promise<IPost[]> {
+  const posts = await getAllPosts();
+  return posts.filter((post) => post.data.category.href === href);
 }
