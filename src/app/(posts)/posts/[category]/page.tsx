@@ -2,21 +2,23 @@
 
 import React from "react";
 import { getPostsByCategory } from "@/lib/posts";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 
 export default function CategoryPage() {
-  const router = useRouter();
-  const { category } = router.query;
-  const posts = getPostsByCategory(category);
+  const path = usePathname();
+
+  console.log(path);
+  // const posts = getPostsByCategory(category);
 
   return (
     <div>
-      <h1>Posts in {category}</h1>
+      hello
+      {/* <h1>Posts in {category}</h1>
       {posts.map((post) => (
         <div key={post.id}>
           <a href={`/posts/${category}/${post.slug}`}>{post.title}</a>
         </div>
-      ))}
+      ))} */}
     </div>
   );
 }

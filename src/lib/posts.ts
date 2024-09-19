@@ -80,3 +80,10 @@ export async function getPostBySlug(slug: string): Promise<Post | undefined> {
   const posts = await getAllPosts();
   return posts.find((post) => post.slug === slug);
 }
+
+export async function getPostsByCategory(
+  category: string
+): Promise<Post | undefined> {
+  const posts = await getAllPosts();
+  return posts.find((post) => post.data.category.label === category);
+}
