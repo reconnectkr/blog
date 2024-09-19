@@ -1,5 +1,7 @@
 import '@fastify/auth';
 import '@fastify/jwt';
+import '@fastify/swagger';
+import '@fastify/swagger-ui';
 
 declare module 'fastify' {
   interface FastifyInstance {

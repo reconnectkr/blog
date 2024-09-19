@@ -13,6 +13,38 @@ export default async function (fastify: FastifyInstance) {
 
   fastify.post<{ Body: SignUpRequest; Reply: SignUpResponse }>(
     '/',
+    {
+      schema: {
+        description: 'User signup',
+        tags: ['User'],
+        body: {
+          type: 'object',
+          properties: {
+            email: { type: 'string' },
+            username: { type: 'string' },
+            name: { type: 'string' },
+            password: { type: 'string' },
+          },
+          required: ['email', 'username', 'name', 'password'],
+        },
+        response: {
+          201: {
+            type: 'object',
+            properties: {
+              email: { type: 'string' },
+              username: { type: 'string' },
+              name: { type: 'string' },
+            },
+          },
+          409: {
+            type: 'object',
+            properties: {
+              message: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
     async (req: FastifyRequest<{ Body: SignUpRequest }>, res: FastifyReply) => {
       const validatedBody = SignUpRequestSchema.parse(req.body);
 
