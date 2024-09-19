@@ -9,6 +9,29 @@ export default async function (fastify: FastifyInstance) {
 
   fastify.post<{ Body: LoginRequest }>(
     '/',
+    {
+      schema: {
+        description: 'User login',
+        tags: ['User'],
+        body: {
+          type: 'object',
+          properties: {
+            username: { type: 'string' },
+            password: { type: 'string' },
+          },
+          required: ['username', 'password'],
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              accessToken: { type: 'string' },
+              refreshToken: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
     async (req: FastifyRequest<{ Body: LoginRequest }>, res: FastifyReply) => {
       const validatedBody = LoginRequestSchema.parse(req.body);
 
