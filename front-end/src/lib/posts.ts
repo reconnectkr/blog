@@ -75,9 +75,7 @@ export async function getAllCategories() {
   return [{ href: "/posts", label: "전체" }, ...categories];
 }
 
-export async function getPostsByCategory(
-  category: string
-): Promise<IPost | undefined> {
+export async function getPostsByCategory(href: string): Promise<IPost[]> {
   const posts = await getAllPosts();
-  return posts.find((post) => post.data.category.label === category);
+  return posts.filter((post) => post.data.category.href === href);
 }

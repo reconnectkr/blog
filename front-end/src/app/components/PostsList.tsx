@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Post } from "../interfaces";
+import { IPost } from "../interfaces";
 import PostsListFilter from "./PostsListFilter";
+import PostBox from "./PostBox";
 
 interface PostsListProps {
-  initialPosts: Post[];
+  initialPosts: IPost[];
 }
 
 export default function PostsList({ initialPosts }: PostsListProps) {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [posts, setPosts] = useState<IPost[]>(initialPosts);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -38,39 +39,7 @@ export default function PostsList({ initialPosts }: PostsListProps) {
 
         <div className="space-y-6 mt-6">
           {filteredPosts.map((post) => (
-            <div
-              key={post.slug}
-              className="bg-white shadow overflow-hidden sm:rounded-lg"
-            >
-              <div className="px-4 py-5 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  <Link
-                    href={`/posts/${post.slug}`}
-                    className="hover:underline"
-                  >
-                    {post.data.title}
-                  </Link>
-                </h3>
-                <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                  {post.data.category.label} • {post.data.date}
-                </p>
-              </div>
-              <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-                <p className="text-sm text-gray-500">
-                  {post.content.length > 200
-                    ? `${post.content.substring(0, 200)}...`
-                    : post.content}
-                </p>
-                <div className="mt-4">
-                  <Link
-                    href={`/posts/${post.slug}`}
-                    className="text-sm font-medium text-blue-600 hover:text-blue-500"
-                  >
-                    더 읽기 <span aria-hidden="true">&rarr;</span>
-                  </Link>
-                </div>
-              </div>
-            </div>
+            <PostBox post={post} />
           ))}
         </div>
       </div>
