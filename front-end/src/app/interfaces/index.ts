@@ -9,6 +9,7 @@ export interface INavigationItem {
 }
 
 export interface IPost {
+  id: number;
   slug: string;
   data: {
     title: string;

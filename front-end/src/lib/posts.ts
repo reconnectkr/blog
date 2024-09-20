@@ -32,6 +32,7 @@ export async function getAllPosts(): Promise<IPost[]> {
         const { data, content } = matter(fileContents);
 
         return {
+          id: data.id,
           slug,
           data: {
             title: data.title || "Untitled",

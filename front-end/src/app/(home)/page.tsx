@@ -111,7 +111,7 @@ async function AllPosts() {
 
 export default async function HomePage() {
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-10 min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <MostRecentPost />
       <RecentPosts />
       <AllPosts />
