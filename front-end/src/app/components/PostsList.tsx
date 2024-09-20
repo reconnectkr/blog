@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { IPost } from "../interfaces";
-import PostsListFilter from "./PostsListFilter";
 import PostBox from "./PostBox";
+import PostsListFilter from "./PostsListFilter";
 
 interface PostsListProps {
   initialPosts: IPost[];
@@ -39,7 +38,7 @@ export default function PostsList({ initialPosts }: PostsListProps) {
 
         <div className="space-y-6 mt-6">
           {filteredPosts.map((post) => (
-            <PostBox post={post} />
+            <PostBox key={post.slug} post={post} />
           ))}
         </div>
       </div>
