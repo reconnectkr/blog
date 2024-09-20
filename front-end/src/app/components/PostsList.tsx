@@ -1,17 +1,16 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { IPost } from "../interfaces";
-import PostsListFilter from "./PostsListFilter";
 import PostBox from "./PostBox";
+import PostsListFilter from "./PostsListFilter";
+import Link from "next/link";
 
 interface PostsListProps {
   initialPosts: IPost[];
 }
 
 export default function PostsList({ initialPosts }: PostsListProps) {
-  const [posts, setPosts] = useState<IPost[]>(initialPosts);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -23,13 +22,23 @@ export default function PostsList({ initialPosts }: PostsListProps) {
   }, [initialPosts]);
 
   const filteredPosts = selectedCategory
-    ? posts.filter((post) => post.data.category.label === selectedCategory)
-    : posts;
+    ? initialPosts.filter(
+        (post) => post.data.category.label === selectedCategory
+      )
+    : initialPosts;
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">게시물 목록</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">게시물 목록</h1>
+          <Link
+            href="/posts/write"
+            className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200"
+          >
+            새 글
+          </Link>
+        </div>
 
         <PostsListFilter
           categories={categories}
@@ -39,7 +48,7 @@ export default function PostsList({ initialPosts }: PostsListProps) {
 
         <div className="space-y-6 mt-6">
           {filteredPosts.map((post) => (
-            <PostBox post={post} />
+            <PostBox key={post.slug} post={post} />
           ))}
         </div>
       </div>

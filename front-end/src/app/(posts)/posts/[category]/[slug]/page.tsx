@@ -1,23 +1,11 @@
-"use client";
-
-import React from "react";
+import Post from "@/app/components/Post";
 import { getPostBySlug } from "@/lib/posts";
-import { useRouter } from "next/router";
 
-export default function PostPage() {
-  // const router = useRouter();
-  // const { category, slug } = router.query;
-  // const post = getPostBySlug(slug);
-
-  // if (!post) {
-  //   return <div>Post not found</div>;
-  // }
-
-  return (
-    <div>
-      hi
-      {/* <h1>{post.title}</h1>
-      <p>{post.content}</p> */}
-    </div>
-  );
+export default async function PostPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const postData = await getPostBySlug(params.slug);
+  return <Post postData={postData} />;
 }

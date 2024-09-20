@@ -12,7 +12,7 @@ export default function PostsListFilter({
   return (
     <div className="flex space-x-4 mb-6">
       <button
-        className={`px-4 py-2 rounded ${
+        className={`px-4 py-2 rounded-3xl ${
           !selectedCategory
             ? "bg-blue-600 text-white"
             : "bg-gray-200 text-gray-700"
@@ -24,7 +24,7 @@ export default function PostsListFilter({
       {categories.map((category) => (
         <button
           key={category}
-          className={`px-4 py-2 rounded ${
+          className={`px-4 py-2 rounded-3xl ${
             selectedCategory === category
               ? "bg-blue-600 text-white"
               : "bg-gray-200 text-gray-700"

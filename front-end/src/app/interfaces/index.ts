@@ -9,6 +9,7 @@ export interface INavigationItem {
 }
 
 export interface IPost {
+  id: number;
   slug: string;
   data: {
     title: string;
@@ -16,8 +17,11 @@ export interface IPost {
       label: string;
       href: string;
     };
-    date: string;
-    coverImage?: string;
+    authorId: string;
+    createdAt: Date;
+    updatedAt: Date;
+
+    // coverImage?: string;
   };
   content: string;
   readingTime?: number;
