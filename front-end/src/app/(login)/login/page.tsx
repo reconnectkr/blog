@@ -54,7 +54,12 @@ export default function LoginPage() {
 
       console.log("로그인 성공!");
       const data = await response.json();
-      login(data.token);
+      login(data.token, {
+        email: data.email,
+        username: data.username,
+        name: data.name,
+        password: data.password,
+      });
 
       router.push("/");
       alert(`${username}님 환영합니다!`);
