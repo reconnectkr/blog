@@ -41,7 +41,7 @@ async function MostRecentPost() {
           dangerouslySetInnerHTML={{ __html: contentHtml }}
         />
         <Link
-          href={`/blog/${mostRecentPost.slug}`}
+          href={`/posts/${mostRecentPost.data.category.href}/${mostRecentPost.slug}`}
           className="inline-block text-blue-600 hover:underline"
         >
           계속 읽기
@@ -59,7 +59,11 @@ async function RecentPosts() {
       <h2 className="text-2xl font-bold">최근 포스트</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {recentPosts.map((post) => (
-          <Link key={post.slug} href={`/blog/${post.slug}`} className="block">
+          <Link
+            key={post.slug}
+            href={`/posts/${post.data.category.href}/${post.slug}`}
+            className="block"
+          >
             <div className="flex flex-col bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow duration-200 gap-2">
               {/* {post.data.coverImage && (
                 <Image
@@ -95,7 +99,10 @@ async function AllPosts() {
             key={post.slug}
             className="bg-white shadow-sm rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
           >
-            <Link href={`/blog/${post.slug}`} className="block">
+            <Link
+              href={`/posts/${post.data.category.href}/${post.slug}`}
+              className="block"
+            >
               <h3 className="text-lg font-semibold mb-1">{post.data.title}</h3>
               <p className="text-gray-600 text-sm">
                 {formattedDate(post.data.updatedAt)} • {post.readingTime} min
