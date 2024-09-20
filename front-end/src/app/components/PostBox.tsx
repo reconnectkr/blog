@@ -29,7 +29,7 @@ export default function PostBox({ post }: PostBoxProps) {
         </p>
         <div className="mt-4">
           <Link
-            href={`/posts/${post.data.category.href}/[slug]?slug=${post.slug}`}
+            href={`/posts/${post.data.category.href}/${post.slug}`}
             className="text-sm font-medium text-blue-600 hover:text-blue-500"
           >
             더 읽기 <span aria-hidden="true">&rarr;</span>

@@ -2,6 +2,7 @@
 
 import formattedDate from "@/lib/formattedDate";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 import { IPost } from "../interfaces";
 
 interface PostProps {
@@ -36,7 +37,9 @@ export default function Post({ postData }: PostProps) {
             <span className="mx-2">•</span>
             <span>작성자 ID: {postData.data.authorId}</span>
           </div>
-          <div dangerouslySetInnerHTML={{ __html: postData.content }} />
+          <div className="prose max-w-none">
+            <ReactMarkdown>{postData.content}</ReactMarkdown>
+          </div>
         </div>
       </article>
 

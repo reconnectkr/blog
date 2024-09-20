@@ -41,7 +41,7 @@ export async function getAllPosts(): Promise<IPost[]> {
             },
             authorId: data.authorId || "",
             createdAt: data.createAt || new Date().toISOString(),
-            updatedAt: data.createAt || new Date().toISOString(),
+            updatedAt: data.updatedAt || new Date().toISOString(),
           },
           content,
           readingTime: Math.ceil(content.split(" ").length / 200),
