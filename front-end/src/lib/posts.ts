@@ -35,11 +35,13 @@ export async function getAllPosts(): Promise<IPost[]> {
           slug,
           data: {
             title: data.title || "Untitled",
-            date: data.date || new Date().toISOString(),
             category: {
               href: data.category.href || "",
               label: data.category.label || "",
             },
+            authorId: data.authorId || "",
+            createdAt: data.createAt || new Date().toISOString(),
+            updatedAt: data.createAt || new Date().toISOString(),
           },
           content,
           readingTime: Math.ceil(content.split(" ").length / 200),
@@ -48,7 +50,7 @@ export async function getAllPosts(): Promise<IPost[]> {
     );
 
     cachedPosts = allPostsData.sort((a, b) =>
-      new Date(a.data.date) < new Date(b.data.date) ? 1 : -1
+      new Date(a.data.updatedAt) < new Date(b.data.updatedAt) ? 1 : -1
     );
 
     return cachedPosts;
@@ -62,9 +64,15 @@ export function invalidateCache() {
   cachedPosts = [];
 }
 
-export async function getPostBySlug(slug: string): Promise<IPost | undefined> {
+export async function getPostBySlug(slug: string): Promise<IPost> {
   const posts = await getAllPosts();
-  return posts.find((post) => post.slug === slug);
+  const post = posts.find((post) => post.slug === slug);
+
+  if (!post) {
+    throw new Error(`Post with slug "${slug}" not found`);
+  }
+
+  return post;
 }
 
 export async function getAllCategories() {

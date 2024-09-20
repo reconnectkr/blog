@@ -1,5 +1,5 @@
+import formattedDate from "@/lib/formattedDate";
 import Link from "next/link";
-import Image from "next/image";
 import { remark } from "remark";
 import html from "remark-html";
 import {
@@ -33,7 +33,8 @@ async function MostRecentPost() {
       <article className="flex flex-col bg-white shadow-lg rounded-lg p-6 gap-4">
         <h3 className="text-2xl font-semibold">{mostRecentPost.data.title}</h3>
         <p className="text-gray-600">
-          {mostRecentPost.data.date} • {mostRecentPost.readingTime} min read
+          {formattedDate(mostRecentPost.data.updatedAt)} •{" "}
+          {mostRecentPost.readingTime} min read
         </p>
         <div
           className="prose max-w-none"
@@ -60,7 +61,7 @@ async function RecentPosts() {
         {recentPosts.map((post) => (
           <Link key={post.slug} href={`/blog/${post.slug}`} className="block">
             <div className="flex flex-col bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow duration-200 gap-2">
-              {post.data.coverImage && (
+              {/* {post.data.coverImage && (
                 <Image
                   src={post.data.coverImage}
                   alt={post.data.title}
@@ -68,10 +69,11 @@ async function RecentPosts() {
                   height={200}
                   className="rounded-t-lg"
                 />
-              )}
+              )} */}
               <h3 className="text-xl font-semibold">{post.data.title}</h3>
               <p className="text-gray-600">
-                {post.data.date} • {post.readingTime} min read
+                {formattedDate(post.data.updatedAt)} • {post.readingTime} min
+                read
               </p>
             </div>
           </Link>
@@ -96,7 +98,8 @@ async function AllPosts() {
             <Link href={`/blog/${post.slug}`} className="block">
               <h3 className="text-lg font-semibold mb-1">{post.data.title}</h3>
               <p className="text-gray-600 text-sm">
-                {post.data.date} • {post.readingTime} min read
+                {formattedDate(post.data.updatedAt)} • {post.readingTime} min
+                read
               </p>
             </Link>
           </li>

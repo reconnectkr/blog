@@ -9,15 +9,13 @@ export default async function CategoryPage({
   const posts = await getPostsByCategory(params.category);
 
   return (
-    <div>
-      <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">게시물 목록</h1>
-          <div className="space-y-6 mt-6">
-            {posts.map((post) => (
-              <PostBox key={post.slug} post={post} />
-            ))}
-          </div>
+    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">게시물 목록</h1>
+        <div className="space-y-6 mt-6">
+          {posts.map((post) => (
+            <PostBox key={post.slug} post={post} />
+          ))}
         </div>
       </div>
     </div>
