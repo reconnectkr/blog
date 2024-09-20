@@ -5,8 +5,10 @@ import { getPostBySlug } from "@/lib/posts";
 import { useRouter } from "next/router";
 
 export default function PostPage() {
-  // const router = useRouter();
-  // const { category, slug } = router.query;
+  const router = useRouter();
+  const { category, slug } = router.query;
+
+  console.log(category, slug);
   // const post = getPostBySlug(slug);
 
   // if (!post) {

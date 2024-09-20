@@ -1,7 +1,5 @@
 import PostBox from "@/app/components/PostBox";
-import { ICategory } from "@/app/interfaces";
 import { getPostsByCategory } from "@/lib/posts";
-import { usePathname, useRouter } from "next/navigation";
 
 export default async function CategoryPage({
   params,
@@ -17,7 +15,7 @@ export default async function CategoryPage({
           <h1 className="text-3xl font-bold text-gray-900 mb-6">게시물 목록</h1>
           <div className="space-y-6 mt-6">
             {posts.map((post) => (
-              <PostBox post={post} />
+              <PostBox key={post.slug} post={post} />
             ))}
           </div>
         </div>

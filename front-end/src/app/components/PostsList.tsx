@@ -10,7 +10,6 @@ interface PostsListProps {
 }
 
 export default function PostsList({ initialPosts }: PostsListProps) {
-  const [posts, setPosts] = useState<IPost[]>(initialPosts);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -22,8 +21,10 @@ export default function PostsList({ initialPosts }: PostsListProps) {
   }, [initialPosts]);
 
   const filteredPosts = selectedCategory
-    ? posts.filter((post) => post.data.category.label === selectedCategory)
-    : posts;
+    ? initialPosts.filter(
+        (post) => post.data.category.label === selectedCategory
+      )
+    : initialPosts;
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
