@@ -16,15 +16,13 @@ export default function PostsList({ initialPosts }: PostsListProps) {
 
   useEffect(() => {
     const uniqueCategories = Array.from(
-      new Set(initialPosts.map((post) => post.data.category.label))
+      new Set(initialPosts.map((post) => post.category.label))
     ).filter((category): category is string => Boolean(category));
     setCategories(uniqueCategories);
   }, [initialPosts]);
 
   const filteredPosts = selectedCategory
-    ? initialPosts.filter(
-        (post) => post.data.category.label === selectedCategory
-      )
+    ? initialPosts.filter((post) => post.category.label === selectedCategory)
     : initialPosts;
 
   return (

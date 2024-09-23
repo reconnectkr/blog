@@ -3,7 +3,7 @@ import fs from "fs/promises";
 import matter from "gray-matter";
 import path from "path";
 
-const postsDirectory = path.join(process.cwd(), "src/public/posts/");
+const postsDirectory = path.join(process.cwd(), "data/posts/");
 
 let cachedPosts: IPost[] = [];
 

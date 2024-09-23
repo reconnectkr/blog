@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/app/context/AuthContext";
+import createCategory from "@/lib/createCategory";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -35,7 +36,7 @@ export default function WritePage() {
           title,
           content,
           authorId: user?.username,
-          category,
+          category: createCategory(category),
         }),
       });
 
