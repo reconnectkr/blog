@@ -71,6 +71,46 @@ model Profile {
   @@map("profiles")
 }
 
+model Post {
+  id      Int    @id @default(autoincrement())
+  title   String
+  content String
+
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  updatedAt DateTime @updatedAt @db.Timestamptz(4)
+
+  categories CategoriesOnPosts[]
+
+  @@index([title])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@map("posts")
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  posts CategoriesOnPosts[]
+
+  @@unique([name])
+  @@index([name])
+  @@map("categories")
+}
+
+model CategoriesOnPosts {
+  postId     Int
+  categoryId Int
+
+  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([postId, categoryId])
+  @@index([postId])
+  @@index([categoryId])
+  @@map("categories_on_posts")
+}
+
 model Coupon {
   id          Int       @id @default(autoincrement())
   code        String
