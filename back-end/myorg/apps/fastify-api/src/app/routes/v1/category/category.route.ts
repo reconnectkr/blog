@@ -18,6 +18,11 @@ import {
   ListCategoryQueryStringSchema,
   ListCategoryResponse,
 } from './list-category.dto';
+import {
+  UpdateCategoryPathParamSchema,
+  UpdateCategoryRequestSchema,
+  UpdateCategoryResponse,
+} from './update-category.dto';
 
 export default async function (fastify: FastifyInstance) {
   const prisma: PrismaClient = fastify.prisma;
@@ -139,51 +144,37 @@ export default async function (fastify: FastifyInstance) {
     }
   );
 
-  // fastify.patch<{ Params: { categoryId: number } }>(
-  //   '/:categoryId',
-  //   { onRequest: [fastify.authenticate] },
-  //   async (
-  //     req: FastifyRequest<{ Params: { categoryId: number } }>,
-  //     res: FastifyReply
-  //   ) => {
-  //     const categoryId = UpdateCategoryPathParamSchema.parse(
-  //       req.params.categoryId
-  //     );
-  //     const validatedBody = UpdateCategoryRequestSchema.parse(req.body);
-  //     try {
-  //       const updatedCategory = await prisma.category.update({
-  //         where: { id: categoryId },
-  //         data: {
-  //           ...validatedBody,
-  //           updatedBy: req.user.userId,
-  //         },
-  //         include: {
-  //           inventoryUnit: {
-  //             select: {
-  //               id: true,
-  //               name: true,
-  //             },
-  //           },
-  //           category: {
-  //             select: {
-  //               id: true,
-  //               name: true,
-  //             },
-  //           },
-  //         },
-  //       });
+  fastify.patch<{ Params: { categoryId: number } }>(
+    '/:categoryId',
+    { onRequest: [fastify.authenticate] },
+    async (
+      req: FastifyRequest<{ Params: { categoryId: number } }>,
+      res: FastifyReply
+    ) => {
+      const categoryId = UpdateCategoryPathParamSchema.parse(
+        req.params.categoryId
+      );
+      const validatedBody = UpdateCategoryRequestSchema.parse(req.body);
+      try {
+        const updatedCategory = await prisma.category.update({
+          where: { id: categoryId },
+          data: {
+            ...validatedBody,
+            // updatedBy: req.user.userId,
+          },
+        });
 
-  //       const resBody: UpdateCategoryResponse = updatedCategory;
-  //       res.send(resBody);
-  //     } catch (error) {
-  //       if (error instanceof PrismaClientKnownRequestError) {
-  //         const knownRequestError: PrismaClientKnownRequestError = error;
-  //         if (knownRequestError.code === 'P2025') {
-  //           res.status(404).send({ message: 'Category not found' });
-  //           return;
-  //         }
-  //       }
-  //     }
-  //   }
-  // );
+        const resBody: UpdateCategoryResponse = updatedCategory;
+        res.send(resBody);
+      } catch (error) {
+        if (error instanceof PrismaClientKnownRequestError) {
+          const knownRequestError: PrismaClientKnownRequestError = error;
+          if (knownRequestError.code === 'P2025') {
+            res.status(404).send({ message: 'Category not found' });
+            return;
+          }
+        }
+      }
+    }
+  );
 }
