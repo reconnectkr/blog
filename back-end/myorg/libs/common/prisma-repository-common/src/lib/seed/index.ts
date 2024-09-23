@@ -1,3 +1,4 @@
+export * from './category.seed';
 export * from './coupon.seed';
 export * from './department.seed';
 export * from './inventory.seed';
