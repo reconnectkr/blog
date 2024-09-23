@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '@reconnect/zod-common';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import {
+  DeleteCategoryPathParamSchema,
+  DeleteCategoryResponse,
+} from './delete-category.dto';
 import {
   GetCategoryPathParamSchema,
   GetCategoryResponse,
@@ -64,43 +69,43 @@ export default async function (fastify: FastifyInstance) {
     }
   );
 
-  // fastify.delete<{ Params: { categoryId: string } }>(
-  //   '/:categoryId',
-  //   { onRequest: [fastify.authenticate] },
-  //   async (
-  //     req: FastifyRequest<{ Params: { categoryId: string } }>,
-  //     res: FastifyReply
-  //   ) => {
-  //     const categoryId = DeleteCategoryPathParamSchema.parse(
-  //       req.params.categoryId
-  //     );
+  fastify.delete<{ Params: { categoryId: string } }>(
+    '/:categoryId',
+    { onRequest: [fastify.authenticate] },
+    async (
+      req: FastifyRequest<{ Params: { categoryId: string } }>,
+      res: FastifyReply
+    ) => {
+      const categoryId = DeleteCategoryPathParamSchema.parse(
+        req.params.categoryId
+      );
 
-  //     try {
-  //       await prisma.category.delete({
-  //         where: { id: categoryId },
-  //       });
-  //       const resBody: DeleteCategoryResponse = undefined;
-  //       res.status(204).send(resBody);
-  //     } catch (error) {
-  //       if (error instanceof PrismaClientKnownRequestError) {
-  //         // {
-  //         //   name: 'PrismaClientKnownRequestError',
-  //         //   code: 'P2025',
-  //         //   clientVersion: '5.19.1',
-  //         //   meta: {
-  //         //     modelName: 'Category',
-  //         //     cause: 'Record to delete does not exist.',
-  //         //   },
-  //         // };
-  //         const knownRequestError: PrismaClientKnownRequestError = error;
-  //         if (knownRequestError.code === 'P2025') {
-  //           res.status(404).send({ message: 'Category not found' });
-  //           return;
-  //         }
-  //       }
-  //     }
-  //   }
-  // );
+      try {
+        await prisma.category.delete({
+          where: { id: categoryId },
+        });
+        const resBody: DeleteCategoryResponse = undefined;
+        res.status(204).send(resBody);
+      } catch (error) {
+        if (error instanceof PrismaClientKnownRequestError) {
+          // {
+          //   name: 'PrismaClientKnownRequestError',
+          //   code: 'P2025',
+          //   clientVersion: '5.19.1',
+          //   meta: {
+          //     modelName: 'Category',
+          //     cause: 'Record to delete does not exist.',
+          //   },
+          // };
+          const knownRequestError: PrismaClientKnownRequestError = error;
+          if (knownRequestError.code === 'P2025') {
+            res.status(404).send({ message: 'Category not found' });
+            return;
+          }
+        }
+      }
+    }
+  );
 
   // fastify.post(
   //   '/',
