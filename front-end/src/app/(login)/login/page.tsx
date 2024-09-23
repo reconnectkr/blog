@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/app/context/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string>("");
 
   const router = useRouter();
+  const { login } = useAuth();
 
   const validateForm = () => {
     if (!username || !password) {
@@ -51,6 +53,13 @@ export default function LoginPage() {
       }
 
       console.log("로그인 성공!");
+      const data = await response.json();
+      login(data.token, {
+        email: data.email,
+        username: data.username,
+        name: data.name,
+        password: data.password,
+      });
 
       router.push("/");
       alert(`${username}님 환영합니다!`);
