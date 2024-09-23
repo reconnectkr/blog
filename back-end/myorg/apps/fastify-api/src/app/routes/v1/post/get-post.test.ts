@@ -14,6 +14,7 @@ describe('GET /api/v1/post/:postId', () => {
   let categories: Category[];
   let posts: Post[];
   let users: User[];
+  let user: User;
   let jwtToken: string;
 
   beforeAll(async () => {
@@ -27,13 +28,6 @@ describe('GET /api/v1/post/:postId', () => {
 
     await deleteTestFixtures();
     await createTestFixtures();
-
-    // Generate a JWT token for testing
-    jwtToken = server.jwt.sign({
-      userId: users[0].id,
-      username: users[0].username,
-      role: 'admin',
-    });
   });
 
   afterAll(async () => {
@@ -43,8 +37,15 @@ describe('GET /api/v1/post/:postId', () => {
 
   async function createTestFixtures() {
     users = await seedUser(prisma);
+    user = users[0];
     categories = await seedCategory(prisma);
     posts = await seedPost(prisma);
+    // Generate a JWT token for testing
+    jwtToken = server.jwt.sign({
+      userId: users[0].id,
+      username: users[0].username,
+      role: 'admin',
+    });
   }
 
   async function deleteTestFixtures() {

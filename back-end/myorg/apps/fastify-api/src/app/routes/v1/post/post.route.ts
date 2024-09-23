@@ -1,6 +1,12 @@
 import { PrismaClient } from '@prisma/client';
+import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '@reconnect/zod-common';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { GetPostPathParamSchema, GetPostResponse } from './get-post.dto';
+import {
+  ListPostQueryStringSchema,
+  ListPostResponse,
+  ListPostResponseSchema,
+} from './list-post.dto';
 
 export default async function (fastify: FastifyInstance) {
   const prisma: PrismaClient = fastify.prisma;
@@ -49,46 +55,52 @@ export default async function (fastify: FastifyInstance) {
     }
   );
 
-  // fastify.get(
-  //   '/',
-  //   { onRequest: [fastify.authenticate] },
-  //   async (req: FastifyRequest, res: FastifyReply) => {
-  //     const validatedQueryString = ListPostQueryStringSchema.parse(
-  //       req.query
-  //     );
-  //     const { filter, orderBy } = validatedQueryString;
-  //     const page = validatedQueryString.page ?? 1;
-  //     const pageSize: number =
-  //       validatedQueryString.pageSize !== undefined
-  //         ? Math.min(validatedQueryString.pageSize, PAGE_SIZE_MAX)
-  //         : PAGE_SIZE_DEFAULT;
-  //     const posts = await prisma.post.findMany({
-  //       where: filter,
-  //       skip: (page - 1) * pageSize,
-  //       take: pageSize,
-  //       orderBy: orderBy,
-  //       include: {
-  //         inventoryUnit: {
-  //           select: {
-  //             id: true,
-  //             name: true,
-  //           },
-  //         },
-  //         category: {
-  //           select: {
-  //             id: true,
-  //             name: true,
-  //           },
-  //         },
-  //       },
-  //     });
+  fastify.get(
+    '/',
+    { onRequest: [fastify.authenticate] },
+    async (req: FastifyRequest, res: FastifyReply) => {
+      const validatedQueryString = ListPostQueryStringSchema.parse(req.query);
+      const { filter, orderBy } = validatedQueryString;
+      const page = validatedQueryString.page ?? 1;
+      const pageSize: number =
+        validatedQueryString.pageSize !== undefined
+          ? Math.min(validatedQueryString.pageSize, PAGE_SIZE_MAX)
+          : PAGE_SIZE_DEFAULT;
+      const posts = await prisma.post.findMany({
+        where: filter,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: orderBy,
+        include: {
+          categories: {
+            select: {
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
 
-  //     const resBody: ListPostResponse = {
-  //       items: posts,
-  //     };
-  //     res.send(resBody);
-  //   }
-  // );
+      const resBody: ListPostResponse = {
+        items: posts.map((post) => ({
+          id: post.id,
+          title: post.title,
+          createdAt: post.createdAt,
+          updatedAt: post.updatedAt,
+          categories: post.categories.map((categoryOnpost) => ({
+            id: categoryOnpost.category.id,
+            name: categoryOnpost.category.name,
+          })),
+        })),
+      };
+      ListPostResponseSchema.parse(resBody);
+      res.send(resBody);
+    }
+  );
 
   // fastify.delete<{ Params: { postId: string } }>(
   //   '/:postId',
