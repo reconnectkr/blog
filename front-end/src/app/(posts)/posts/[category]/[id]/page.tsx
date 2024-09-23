@@ -1,13 +1,14 @@
 import Post from "@/app/components/Post";
-import { getPostBySlug } from "@/lib/posts";
+import { getPostById } from "@/lib/posts";
 
 export default async function PostPage({
   params,
 }: {
-  params: { slug: string };
+  params: { category: string; id: number };
 }) {
   try {
-    const postData = await getPostBySlug(params.slug);
+    const postData = await getPostById(params.id);
+    console.log("postData: ", postData);
 
     if (!postData) {
       return <div>No post found.</div>;
@@ -15,7 +16,7 @@ export default async function PostPage({
 
     return <Post postData={postData} />;
   } catch (error) {
-    console.error(`Error fetching post by slug ${params.slug}:`, error);
+    console.error(`Error fetching post by slug ${params.id}:`, error);
     return <div>An error occurred.</div>;
   }
 }

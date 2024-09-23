@@ -81,6 +81,17 @@ export async function getPostBySlug(slug: string): Promise<IPost | null> {
   }
 }
 
+export async function getPostById(id: number): Promise<IPost | null> {
+  try {
+    const posts = await getAllPosts();
+    const post = posts.find((post) => post.id === Number(id));
+    return post ? post : null;
+  } catch (error) {
+    console.error(`Error fetching ${id} post:`, error);
+    return null;
+  }
+}
+
 export async function getAllCategories() {
   const posts = await getAllPosts();
   const categories = Array.from(

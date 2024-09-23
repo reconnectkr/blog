@@ -11,7 +11,7 @@ export default function PostBox({ post }: PostBoxProps) {
       <div className="px-4 py-5 sm:px-6">
         <h3 className="text-lg leading-6 font-medium text-gray-900">
           <Link
-            href={`/posts/${post.category.href}/${post.slug}`}
+            href={`/posts/${post.category.href}/${post.id}`}
             className="hover:underline"
           >
             {post.title}
@@ -29,7 +29,7 @@ export default function PostBox({ post }: PostBoxProps) {
         </p>
         <div className="mt-4">
           <Link
-            href={`/posts/${post.category.href}/${post.slug}`}
+            href={`/posts/${post.category.href}/${post.id}`}
             className="text-sm font-medium text-blue-600 hover:text-blue-500"
           >
             더 읽기 <span aria-hidden="true">&rarr;</span>
