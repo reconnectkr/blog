@@ -9,7 +9,7 @@ export default function Header() {
     <div className="bg-white shadow-md">
       <header className="flex flex-row justify-between py-4 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="text-xl font-bold text-gray-800 max-w-7xl">
-          My Blog
+          블로그
         </Link>
         {isLoggedIn ? (
           <div className="flex flex-row gap-10">
@@ -19,7 +19,7 @@ export default function Header() {
             <button onClick={logout}>로그아웃</button>
           </div>
         ) : (
-          <Link href="/login">login</Link>
+          <Link href="/login">로그인</Link>
         )}
       </header>
     </div>

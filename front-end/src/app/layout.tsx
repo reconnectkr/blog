@@ -6,8 +6,8 @@ import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
 
 export const metadata: Metadata = {
-  title: "Junseo's Blog",
-  description: "This page is junior developer, Junseo's blog",
+  title: "Blog",
+  description: "This page is blog",
 };
 
 export default function RootLayout({
