@@ -5,6 +5,8 @@ import NavigationItem from "./NavigationItem";
 export default async function SideNavigationBar() {
   const categories = await getAllCategories();
 
+  const uniqueCategoryLabels = new Set<string>();
+
   const navigationItems: INavigationItem[] = [
     { category: { href: "/", label: "홈" } },
     {
@@ -12,13 +14,21 @@ export default async function SideNavigationBar() {
         href: "/posts",
         label: "포스트",
       },
-      subItems: categories.map((category) => ({
-        href:
-          category.label === "전체"
-            ? category.href
-            : `/posts/${category.href.toLowerCase()}`,
-        label: category.label,
-      })),
+      subItems: categories
+        .filter((category) => {
+          if (uniqueCategoryLabels.has(category.label)) {
+            return false;
+          }
+          uniqueCategoryLabels.add(category.label);
+          return true;
+        })
+        .map((category) => ({
+          href:
+            category.label === "전체"
+              ? category.href
+              : `/posts/${category.href.toLowerCase()}`,
+          label: category.label,
+        })),
     },
     // { category: { href: "/about", label: "소개" } },
     // { category: { href: "/contact", label: "연락처" } },
