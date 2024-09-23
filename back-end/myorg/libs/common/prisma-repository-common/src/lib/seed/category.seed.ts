@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
 export async function seedCategory(prisma: PrismaClient) {
-  const user = await prisma.user.findFirstOrThrow();
   await prisma.category.createMany({
     data: [
       { id: 1, name: '기술' },
