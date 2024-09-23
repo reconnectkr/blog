@@ -31,9 +31,9 @@ async function MostRecentPost() {
     <section className="flex flex-col gap-4">
       <h2 className="text-3xl font-bold">최신 포스트</h2>
       <article className="flex flex-col bg-white shadow-lg rounded-lg p-6 gap-4">
-        <h3 className="text-2xl font-semibold">{mostRecentPost.data.title}</h3>
+        <h3 className="text-2xl font-semibold">{mostRecentPost.title}</h3>
         <p className="text-gray-600">
-          {formattedDate(mostRecentPost.data.updatedAt)} •{" "}
+          {formattedDate(mostRecentPost.updatedAt)} •{" "}
           {mostRecentPost.readingTime} min read
         </p>
         <div
@@ -41,7 +41,7 @@ async function MostRecentPost() {
           dangerouslySetInnerHTML={{ __html: contentHtml }}
         />
         <Link
-          href={`/posts/${mostRecentPost.data.category.href}/${mostRecentPost.slug}`}
+          href={`/posts/${mostRecentPost.category.href}/${mostRecentPost.slug}`}
           className="inline-block text-blue-600 hover:underline"
         >
           계속 읽기
@@ -54,6 +54,17 @@ async function MostRecentPost() {
 async function RecentPosts() {
   const recentPosts = await getRecentPosts(3);
 
+  if (!recentPosts) {
+    return (
+      <section className="flex flex-col gap-4">
+        <h2 className="text-3xl font-bold">최근 포스트</h2>
+        <div className="bg-white shadow-lg rounded-lg p-6">
+          <p>아직 게시된 포스트가 없습니다.</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="flex flex-col gap-4">
       <h2 className="text-2xl font-bold">최근 포스트</h2>
@@ -61,7 +72,7 @@ async function RecentPosts() {
         {recentPosts.map((post) => (
           <Link
             key={post.slug}
-            href={`/posts/${post.data.category.href}/${post.slug}`}
+            href={`/posts/${post.category.href}/${post.slug}`}
             className="block"
           >
             <div className="flex flex-col bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow duration-200 gap-2">
@@ -74,10 +85,9 @@ async function RecentPosts() {
                   className="rounded-t-lg"
                 />
               )} */}
-              <h3 className="text-xl font-semibold">{post.data.title}</h3>
+              <h3 className="text-xl font-semibold">{post.title}</h3>
               <p className="text-gray-600">
-                {formattedDate(post.data.updatedAt)} • {post.readingTime} min
-                read
+                {formattedDate(post.updatedAt)} • {post.readingTime} min read
               </p>
             </div>
           </Link>
@@ -90,6 +100,17 @@ async function RecentPosts() {
 async function AllPosts() {
   const allPosts = await getAllPosts();
 
+  if (allPosts.length == 0) {
+    return (
+      <section className="flex flex-col gap-4">
+        <h2 className="text-3xl font-bold">최근 포스트</h2>
+        <div className="bg-white shadow-lg rounded-lg p-6">
+          <p>아직 게시된 포스트가 없습니다.</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="flex flex-col gap-4">
       <h2 className="text-2xl font-bold">모든 포스트</h2>
@@ -100,13 +121,12 @@ async function AllPosts() {
             className="bg-white shadow-sm rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
           >
             <Link
-              href={`/posts/${post.data.category.href}/${post.slug}`}
+              href={`/posts/${post.category.href}/${post.slug}`}
               className="block"
             >
-              <h3 className="text-lg font-semibold mb-1">{post.data.title}</h3>
+              <h3 className="text-lg font-semibold mb-1">{post.title}</h3>
               <p className="text-gray-600 text-sm">
-                {formattedDate(post.data.updatedAt)} • {post.readingTime} min
-                read
+                {formattedDate(post.updatedAt)} • {post.readingTime} min read
               </p>
             </Link>
           </li>

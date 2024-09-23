@@ -20,8 +20,8 @@ export default async function SideNavigationBar() {
         label: category.label,
       })),
     },
-    { category: { href: "/about", label: "소개" } },
-    { category: { href: "/contact", label: "연락처" } },
+    // { category: { href: "/about", label: "소개" } },
+    // { category: { href: "/contact", label: "연락처" } },
   ];
 
   return (
