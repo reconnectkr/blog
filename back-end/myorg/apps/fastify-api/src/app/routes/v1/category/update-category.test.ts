@@ -50,7 +50,7 @@ describe('PATCH /api/v1/category/:categoryId', () => {
     await prisma.user.deleteMany();
   }
 
-  it('should update an inventory item successfully', async () => {
+  it('should update an category successfully', async () => {
     const category = categories[0];
     const updateData = {
       name: 'Updated Item Name',
@@ -93,7 +93,7 @@ describe('PATCH /api/v1/category/:categoryId', () => {
     expect(response.statusCode).toBe(400);
   });
 
-  it('should return 404 for non-existent inventory item', async () => {
+  it('should return 404 for non-existent category', async () => {
     const nonExistentId = 99999;
     const updateData = { name: 'Test Update' };
 

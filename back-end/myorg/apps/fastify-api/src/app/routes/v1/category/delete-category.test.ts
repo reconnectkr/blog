@@ -48,7 +48,7 @@ describe('DELETE /api/v1/category/:id', () => {
     await prisma.category.deleteMany();
     await prisma.user.deleteMany();
   }
-  it('should delete an inventory item successfully', async () => {
+  it('should delete an category successfully', async () => {
     const category = categories[0];
     const response = await server.inject({
       method: 'DELETE',
@@ -68,7 +68,7 @@ describe('DELETE /api/v1/category/:id', () => {
     expect(deletedItem).toBeNull();
   });
 
-  it('should return 404 if inventory item does not exist', async () => {
+  it('should return 404 if category does not exist', async () => {
     const nonExistentId = 999999;
     const response = await server.inject({
       method: 'DELETE',

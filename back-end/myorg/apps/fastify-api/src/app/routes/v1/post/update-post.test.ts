@@ -9,7 +9,7 @@ import {
 import Fastify, { FastifyInstance } from 'fastify';
 import { app, SECRET } from '../../../app';
 
-describe('DELETE /api/v1/post/:id', () => {
+describe('PATCH /api/v1/post/:postId', () => {
   let server: FastifyInstance;
   let categories: Category[];
   let posts: Post[];
@@ -54,58 +54,88 @@ describe('DELETE /api/v1/post/:id', () => {
     await prisma.category.deleteMany();
     await prisma.user.deleteMany();
   }
-  it('should delete an post successfully', async () => {
+
+  it('should update an post successfully', async () => {
     const post = posts[0];
+    const category1 = categories[1];
+    const category2 = categories[2];
+    const updateData = {
+      title: 'Updated Item Title',
+      content: 'New Content',
+      categories: [category1.name, category2.name],
+    };
+
     const response = await server.inject({
-      method: 'DELETE',
+      method: 'PATCH',
       url: `/api/v1/post/${post.id}`,
       headers: {
         Authorization: `Bearer ${jwtToken}`,
       },
+      payload: updateData,
     });
 
-    expect(response.statusCode).toBe(204);
-    expect(response.body).toBe('');
-
-    // Verify the item has been deleted
-    const deletedItem = await prisma.post.findUnique({
-      where: { id: post.id },
+    expect(response.statusCode).toBe(200);
+    const updatedItem = JSON.parse(response.payload);
+    expect(updatedItem).toMatchObject({
+      id: post.id,
+      title: updateData.title,
+      content: updateData.content,
+      categories: [
+        {
+          id: category1.id,
+          name: category1.name,
+        },
+        {
+          id: category2.id,
+          name: category2.name,
+        },
+      ],
     });
-    expect(deletedItem).toBeNull();
+    expect(updatedItem.updatedAt).toBeTruthy();
   });
 
-  it('should return 404 if post does not exist', async () => {
-    const nonExistentId = 999999;
+  it('should return 400 for invalid input', async () => {
+    const invalidData = {
+      inventoryUnitId: 'not a number',
+    };
+
     const response = await server.inject({
-      method: 'DELETE',
+      method: 'PATCH',
+      url: `/api/v1/post/${posts[0].id}`,
+      headers: {
+        Authorization: `Bearer ${jwtToken}`,
+      },
+      payload: invalidData,
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('should return 404 for non-existent post', async () => {
+    const nonExistentId = 99999;
+    const updateData = { title: 'Updated Item Title', content: 'New Content' };
+
+    const response = await server.inject({
+      method: 'PATCH',
       url: `/api/v1/post/${nonExistentId}`,
       headers: {
         Authorization: `Bearer ${jwtToken}`,
       },
+      payload: updateData,
     });
 
     expect(response.statusCode).toBe(404);
   });
 
-  it('should return 401 if not authenticated', async () => {
-    const post = posts[0];
+  it('should return 401 for unauthorized access', async () => {
+    const updateData = { name: 'Test Update' };
+
     const response = await server.inject({
-      method: 'DELETE',
-      url: `/api/v1/post/${post.id}`,
+      method: 'PATCH',
+      url: `/api/v1/post/${posts[0].id}`,
+      payload: updateData,
     });
 
     expect(response.statusCode).toBe(401);
-  });
-
-  it('should return 400 if id is not a positive integer', async () => {
-    const response = await server.inject({
-      method: 'DELETE',
-      url: '/api/v1/post/invalid',
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-      },
-    });
-
-    expect(response.statusCode).toBe(400);
   });
 });

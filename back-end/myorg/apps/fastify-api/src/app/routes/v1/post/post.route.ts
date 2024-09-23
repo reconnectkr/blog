@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Category, Prisma, PrismaClient } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '@reconnect/zod-common';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
@@ -13,6 +13,12 @@ import {
   ListPostResponse,
   ListPostResponseSchema,
 } from './list-post.dto';
+import {
+  UpdatePostPathParamSchema,
+  UpdatePostRequestSchema,
+  UpdatePostResponse,
+  UpdatePostResponseSchema,
+} from './update-post.dto';
 
 export default async function (fastify: FastifyInstance) {
   const prisma: PrismaClient = fastify.prisma;
@@ -199,51 +205,86 @@ export default async function (fastify: FastifyInstance) {
     }
   );
 
-  // fastify.patch<{ Params: { postId: number } }>(
-  //   '/:postId',
-  //   { onRequest: [fastify.authenticate] },
-  //   async (
-  //     req: FastifyRequest<{ Params: { postId: number } }>,
-  //     res: FastifyReply
-  //   ) => {
-  //     const postId = UpdatePostPathParamSchema.parse(
-  //       req.params.postId
-  //     );
-  //     const validatedBody = UpdatePostRequestSchema.parse(req.body);
-  //     try {
-  //       const updatedPost = await prisma.post.update({
-  //         where: { id: postId },
-  //         data: {
-  //           ...validatedBody,
-  //           updatedBy: req.user.userId,
-  //         },
-  //         include: {
-  //           inventoryUnit: {
-  //             select: {
-  //               id: true,
-  //               name: true,
-  //             },
-  //           },
-  //           category: {
-  //             select: {
-  //               id: true,
-  //               name: true,
-  //             },
-  //           },
-  //         },
-  //       });
+  fastify.patch<{ Params: { postId: number } }>(
+    '/:postId',
+    { onRequest: [fastify.authenticate] },
+    async (
+      req: FastifyRequest<{ Params: { postId: number } }>,
+      res: FastifyReply
+    ) => {
+      const postId = UpdatePostPathParamSchema.parse(req.params.postId);
+      const validatedBody = UpdatePostRequestSchema.parse(req.body);
+      try {
+        const updatedPost = await prisma.post.update({
+          where: { id: postId },
+          data: {
+            title: validatedBody.title,
+            content: validatedBody.content,
+          },
+        });
 
-  //       const resBody: UpdatePostResponse = updatedPost;
-  //       res.send(resBody);
-  //     } catch (error) {
-  //       if (error instanceof PrismaClientKnownRequestError) {
-  //         const knownRequestError: PrismaClientKnownRequestError = error;
-  //         if (knownRequestError.code === 'P2025') {
-  //           res.status(404).send({ message: 'Post not found' });
-  //           return;
-  //         }
-  //       }
-  //     }
-  //   }
-  // );
+        let categories: Category[];
+        if (validatedBody.categories) {
+          await prisma.categoriesOnPosts.deleteMany({
+            where: { postId: postId },
+          });
+
+          categories = await prisma.category.findMany({
+            where: {
+              name: {
+                in: validatedBody.categories,
+              },
+            },
+          });
+
+          await prisma.categoriesOnPosts.createMany({
+            data: categories.map((category) => ({
+              categoryId: category.id,
+              postId: postId,
+            })),
+          });
+        }
+
+        const postUpdated = await prisma.post.findFirstOrThrow({
+          where: {
+            id: postId,
+          },
+          include: {
+            categories: {
+              select: {
+                category: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        const resBody: UpdatePostResponse = {
+          id: postUpdated.id,
+          title: postUpdated.title,
+          content: postUpdated.content,
+          createdAt: postUpdated.createdAt,
+          updatedAt: postUpdated.updatedAt,
+          categories: postUpdated.categories.map((categoryOnpost) => ({
+            id: categoryOnpost.category.id,
+            name: categoryOnpost.category.name,
+          })),
+        };
+        UpdatePostResponseSchema.parse(resBody);
+        res.send(resBody);
+      } catch (error) {
+        if (error instanceof PrismaClientKnownRequestError) {
+          const knownRequestError: PrismaClientKnownRequestError = error;
+          if (knownRequestError.code === 'P2025') {
+            res.status(404).send({ message: 'Post not found' });
+            return;
+          }
+        }
+      }
+    }
+  );
 }
