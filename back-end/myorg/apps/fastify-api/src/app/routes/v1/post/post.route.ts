@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '@reconnect/zod-common';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import {
+  DeletePostPathParamSchema,
+  DeletePostResponse,
+} from './delete-post.dto';
 import { GetPostPathParamSchema, GetPostResponse } from './get-post.dto';
 import {
   ListPostQueryStringSchema,
@@ -102,43 +107,41 @@ export default async function (fastify: FastifyInstance) {
     }
   );
 
-  // fastify.delete<{ Params: { postId: string } }>(
-  //   '/:postId',
-  //   { onRequest: [fastify.authenticate] },
-  //   async (
-  //     req: FastifyRequest<{ Params: { postId: string } }>,
-  //     res: FastifyReply
-  //   ) => {
-  //     const postId = DeletePostPathParamSchema.parse(
-  //       req.params.postId
-  //     );
+  fastify.delete<{ Params: { postId: string } }>(
+    '/:postId',
+    { onRequest: [fastify.authenticate] },
+    async (
+      req: FastifyRequest<{ Params: { postId: string } }>,
+      res: FastifyReply
+    ) => {
+      const postId = DeletePostPathParamSchema.parse(req.params.postId);
 
-  //     try {
-  //       await prisma.post.delete({
-  //         where: { id: postId },
-  //       });
-  //       const resBody: DeletePostResponse = undefined;
-  //       res.status(204).send(resBody);
-  //     } catch (error) {
-  //       if (error instanceof PrismaClientKnownRequestError) {
-  //         // {
-  //         //   name: 'PrismaClientKnownRequestError',
-  //         //   code: 'P2025',
-  //         //   clientVersion: '5.19.1',
-  //         //   meta: {
-  //         //     modelName: 'Post',
-  //         //     cause: 'Record to delete does not exist.',
-  //         //   },
-  //         // };
-  //         const knownRequestError: PrismaClientKnownRequestError = error;
-  //         if (knownRequestError.code === 'P2025') {
-  //           res.status(404).send({ message: 'Post not found' });
-  //           return;
-  //         }
-  //       }
-  //     }
-  //   }
-  // );
+      try {
+        await prisma.post.delete({
+          where: { id: postId },
+        });
+        const resBody: DeletePostResponse = undefined;
+        res.status(204).send(resBody);
+      } catch (error) {
+        if (error instanceof PrismaClientKnownRequestError) {
+          // {
+          //   name: 'PrismaClientKnownRequestError',
+          //   code: 'P2025',
+          //   clientVersion: '5.19.1',
+          //   meta: {
+          //     modelName: 'Post',
+          //     cause: 'Record to delete does not exist.',
+          //   },
+          // };
+          const knownRequestError: PrismaClientKnownRequestError = error;
+          if (knownRequestError.code === 'P2025') {
+            res.status(404).send({ message: 'Post not found' });
+            return;
+          }
+        }
+      }
+    }
+  );
 
   // fastify.post(
   //   '/',
