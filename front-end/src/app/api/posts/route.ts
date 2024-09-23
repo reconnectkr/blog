@@ -32,18 +32,6 @@ export async function POST(request: NextRequest) {
     `${newPost.slug}.json`
   );
 
-  // const mdxContent = `
-  // ---
-  // title: ${title}
-  // ---
-  // ${content}`;
-  // const filePath = path.join(
-  //   process.cwd(),
-  //   "data",
-  //   "posts",
-  //   `${title.toLowerCase().replace(/ /g, "-")}.mdx`
-  // );
-
   try {
     await fs.mkdir(path.dirname(filePath), { recursive: true });
 

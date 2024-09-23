@@ -8,7 +8,6 @@ export default async function PostPage({
 }) {
   try {
     const postData = await getPostById(params.id);
-    console.log("postData: ", postData);
 
     if (!postData) {
       return <div>No post found.</div>;
