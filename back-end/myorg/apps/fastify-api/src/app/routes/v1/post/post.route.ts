@@ -1,7 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '@reconnect/zod-common';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import { CreatePostRequestSchema, CreatePostResponse } from './create-post.dto';
 import {
   DeletePostPathParamSchema,
   DeletePostResponse,
@@ -143,31 +144,60 @@ export default async function (fastify: FastifyInstance) {
     }
   );
 
-  // fastify.post(
-  //   '/',
-  //   { onRequest: [fastify.authenticate] },
-  //   async (req: FastifyRequest, res: FastifyReply) => {
-  //     const validatedBody = CreatePostRequestSchema.parse(req.body);
+  fastify.post(
+    '/',
+    { onRequest: [fastify.authenticate] },
+    async (req: FastifyRequest, res: FastifyReply) => {
+      const validatedBody = CreatePostRequestSchema.parse(req.body);
 
-  //     type PostCreateBody = Prisma.Args<
-  //       typeof prisma.post,
-  //       'create'
-  //     >['data'];
+      type PostCreateBody = Prisma.Args<typeof prisma.post, 'create'>['data'];
 
-  //     const postCreateBody: PostCreateBody = {
-  //       ...validatedBody,
-  //       createdBy: req.user.userId,
-  //       updatedBy: req.user.userId,
-  //     };
+      const postCreateBody: PostCreateBody = {
+        title: validatedBody.title,
+        content: validatedBody.content,
+        categories: {
+          create: validatedBody.categories.map((category) => ({
+            category: {
+              connect: {
+                name: category,
+              },
+            },
+          })),
+        },
+        // createdBy: req.user.userId,
+        // updatedBy: req.user.userId,
+      };
 
-  //     const post = await prisma.post.create({
-  //       data: postCreateBody,
-  //     });
+      const post = await prisma.post.create({
+        data: postCreateBody,
+        include: {
+          categories: {
+            select: {
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
 
-  //     const resBody: CreatePostResponse = post;
-  //     res.status(201).send(resBody);
-  //   }
-  // );
+      const resBody: CreatePostResponse = {
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        categories: post.categories.map((categoryOnpost) => ({
+          id: categoryOnpost.category.id,
+          name: categoryOnpost.category.name,
+        })),
+      };
+      res.status(201).send(resBody);
+    }
+  );
 
   // fastify.patch<{ Params: { postId: number } }>(
   //   '/:postId',

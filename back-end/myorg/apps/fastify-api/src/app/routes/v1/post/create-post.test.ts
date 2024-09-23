@@ -1,16 +1,18 @@
 import fastifyJwt from '@fastify/jwt';
-import { Category, User } from '@prisma/client';
+import { Category, Post, User } from '@prisma/client';
 import {
   prisma,
   seedCategory,
+  seedPost,
   seedUser,
 } from '@reconnect/prisma-repository-common';
 import Fastify, { FastifyInstance } from 'fastify';
 import { app, SECRET } from '../../../app';
 
-describe('POST /api/v1/category', () => {
+describe('POST /api/v1/post', () => {
   let server: FastifyInstance;
   let categories: Category[];
+  let posts: Post[];
   let users: User[];
   let user: User;
   let jwtToken: string;
@@ -37,27 +39,34 @@ describe('POST /api/v1/category', () => {
     users = await seedUser(prisma);
     user = users[0];
     categories = await seedCategory(prisma);
+    posts = await seedPost(prisma);
     // Generate a JWT token for testing
     jwtToken = server.jwt.sign({
-      userId: user.id,
-      username: user.username,
+      userId: users[0].id,
+      username: users[0].username,
       role: 'admin',
     });
   }
 
   async function deleteTestFixtures() {
+    await prisma.categoriesOnPosts.deleteMany();
+    await prisma.post.deleteMany();
     await prisma.category.deleteMany();
     await prisma.user.deleteMany();
   }
 
-  it('should create a new category', async () => {
+  it('should create a new post', async () => {
+    const category = await prisma.category.findFirstOrThrow();
+
     const newItem = {
-      name: '신규 카테고리',
+      title: 'Test Title',
+      content: 'Test Content',
+      categories: [category.name],
     };
 
     const response = await server.inject({
       method: 'POST',
-      url: '/api/v1/category',
+      url: '/api/v1/post',
       headers: {
         Authorization: `Bearer ${jwtToken}`,
       },
@@ -66,7 +75,15 @@ describe('POST /api/v1/category', () => {
 
     expect(response.statusCode).toBe(201);
     const responseBody = JSON.parse(response.body);
-    expect(responseBody).toMatchObject(newItem);
+    expect(responseBody).toMatchObject({
+      ...newItem,
+      categories: [
+        {
+          id: category.id,
+          name: category.name,
+        },
+      ],
+    });
     expect(responseBody).toHaveProperty('id');
   });
 
@@ -77,7 +94,7 @@ describe('POST /api/v1/category', () => {
 
     const response = await server.inject({
       method: 'POST',
-      url: '/api/v1/category',
+      url: '/api/v1/post',
       headers: {
         Authorization: `Bearer ${jwtToken}`,
       },
@@ -88,13 +105,17 @@ describe('POST /api/v1/category', () => {
   });
 
   it('should return 401 for unauthorized access', async () => {
+    const category = await prisma.category.findFirstOrThrow();
+
     const newItem = {
-      name: 'Unauthorized Item',
+      title: 'Test Title',
+      content: 'Test Content',
+      categories: [category.name],
     };
 
     const response = await server.inject({
       method: 'POST',
-      url: '/api/v1/category',
+      url: '/api/v1/post',
       payload: newItem,
     });
 
