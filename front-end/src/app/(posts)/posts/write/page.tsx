@@ -25,7 +25,7 @@ export default function WritePage() {
       return;
     }
 
-    // 작성한 포스트를 src/public/posts에(로컬 저장소에) 저장하는 방법
+    // 프론트엔드에서 버튼 클릭 시 api 요청 보내는 것. (로컬이든 아니든 상관 없이 일단 api 요청을 보낸 것.)
     try {
       const response = await fetch("/api/posts", {
         method: "POST",
