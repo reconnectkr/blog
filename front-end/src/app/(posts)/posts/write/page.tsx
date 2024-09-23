@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { useAuth } from "@/app/context/AuthContext";
+import createCategory from "@/lib/createCategory";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor").then((mod) => mod.default),
@@ -13,6 +14,7 @@ const MDEditor = dynamic(
 export default function WritePage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [category, setCategory] = useState("");
   const router = useRouter();
   const { isLoggedIn, user } = useAuth();
 
@@ -23,8 +25,9 @@ export default function WritePage() {
       return;
     }
 
+    // 프론트엔드에서 버튼 클릭 시 api 요청 보내는 것. (로컬이든 아니든 상관 없이 일단 api 요청을 보낸 것.)
     try {
-      const response = await fetch("/api/v1/posts", {
+      const response = await fetch("/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -33,10 +36,14 @@ export default function WritePage() {
           title,
           content,
           authorId: user?.username,
+          category: createCategory(category),
         }),
       });
 
       if (response.ok) {
+        const data = await response.json();
+        console.log("Post saved:", data.post);
+        alert("포스트가 성공적으로 저장되었습니다.");
         router.push("/posts");
       } else {
         throw new Error("Failed to save the post");
@@ -46,6 +53,31 @@ export default function WritePage() {
       alert("글 저장에 실패했습니다. 다시 시도해주세요.");
     }
   };
+
+  //   api 연결 완료 시 이 코드 수정해서 사용
+  //   try {
+  //     const response = await fetch("/api/v1/posts", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         title,
+  //         content,
+  //         authorId: user?.username,
+  //       }),
+  //     });
+
+  //     if (response.ok) {
+  //       router.push("/posts");
+  //     } else {
+  //       throw new Error("Failed to save the post");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving post:", error);
+  //     alert("글 저장에 실패했습니다. 다시 시도해주세요.");
+  //   }
+  // };
 
   if (!isLoggedIn) {
     return (
@@ -69,6 +101,13 @@ export default function WritePage() {
         placeholder="제목을 입력하세요"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        className="w-full mb-6 px-4 py-2 text-lg bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      />
+      <input
+        type="text"
+        placeholder="카테고리를 입력하세요"
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
         className="w-full mb-6 px-4 py-2 text-lg bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       />
       <MDEditor

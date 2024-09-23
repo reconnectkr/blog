@@ -33,6 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
+  // api response가 토큰 두 개만 내뱉는데 그걸 이용해서 어떻게 유저의 정보를 받아올 수 있지? 그걸 해결해야 함.
   const login = (token: string, user: User) => {
     localStorage.setItem("authToken", token);
     localStorage.setItem("user", JSON.stringify(user));
