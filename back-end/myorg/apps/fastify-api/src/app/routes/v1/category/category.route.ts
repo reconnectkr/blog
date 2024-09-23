@@ -1,7 +1,11 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '@reconnect/zod-common';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import {
+  CreateCategoryRequestSchema,
+  CreateCategoryResponse,
+} from './create-category.dto';
 import {
   DeleteCategoryPathParamSchema,
   DeleteCategoryResponse,
@@ -107,31 +111,33 @@ export default async function (fastify: FastifyInstance) {
     }
   );
 
-  // fastify.post(
-  //   '/',
-  //   { onRequest: [fastify.authenticate] },
-  //   async (req: FastifyRequest, res: FastifyReply) => {
-  //     const validatedBody = CreateCategoryRequestSchema.parse(req.body);
+  fastify.post(
+    '/',
+    { onRequest: [fastify.authenticate] },
+    async (req: FastifyRequest, res: FastifyReply) => {
+      const validatedBody = CreateCategoryRequestSchema.parse(req.body);
 
-  //     type CategoryCreateBody = Prisma.Args<
-  //       typeof prisma.category,
-  //       'create'
-  //     >['data'];
+      type CategoryCreateBody = Prisma.Args<
+        typeof prisma.category,
+        'create'
+      >['data'];
 
-  //     const categoryCreateBody: CategoryCreateBody = {
-  //       ...validatedBody,
-  //       createdBy: req.user.userId,
-  //       updatedBy: req.user.userId,
-  //     };
+      const categoryCreateBody: CategoryCreateBody = {
+        ...validatedBody,
+        // createdBy: req.user.userId,
+        // updatedBy: req.user.userId,
+      };
 
-  //     const category = await prisma.category.create({
-  //       data: categoryCreateBody,
-  //     });
+      const category = await prisma.category.create({
+        data: {
+          name: validatedBody.name,
+        },
+      });
 
-  //     const resBody: CreateCategoryResponse = category;
-  //     res.status(201).send(resBody);
-  //   }
-  // );
+      const resBody: CreateCategoryResponse = category;
+      res.status(201).send(resBody);
+    }
+  );
 
   // fastify.patch<{ Params: { categoryId: number } }>(
   //   '/:categoryId',
