@@ -41,7 +41,7 @@ async function MostRecentPost() {
           dangerouslySetInnerHTML={{ __html: contentHtml }}
         />
         <Link
-          href={`/posts/${mostRecentPost.category.href}/${mostRecentPost.slug}`}
+          href={`/posts/${mostRecentPost.category.href}/${mostRecentPost.id}`}
           className="inline-block text-blue-600 hover:underline"
         >
           계속 읽기
@@ -72,7 +72,7 @@ async function RecentPosts() {
         {recentPosts.map((post) => (
           <Link
             key={post.slug}
-            href={`/posts/${post.category.href}/${post.slug}`}
+            href={`/posts/${post.category.href}/${post.id}`}
             className="block"
           >
             <div className="flex flex-col bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow duration-200 gap-2">
@@ -121,7 +121,7 @@ async function AllPosts() {
             className="bg-white shadow-sm rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
           >
             <Link
-              href={`/posts/${post.category.href}/${post.slug}`}
+              href={`/posts/${post.category.href}/${post.id}`}
               className="block"
             >
               <h3 className="text-lg font-semibold mb-1">{post.title}</h3>
