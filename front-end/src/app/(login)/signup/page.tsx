@@ -44,7 +44,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:4000/api/v1/signup", {
+      const response = await fetch("/api/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -59,10 +59,13 @@ export default function SignupPage() {
         );
       }
 
-      console.log("회원가입 성공!");
+      const data = await response.json();
+      console.log(data.message);
 
       router.push("/login");
-      alert(`${username}님 로그인 후 이용 부탁드립니다.`);
+      alert(
+        `${username}님 회원가입이 완료되었습니다. 로그인 후 이용 부탁드립니다.`
+      );
     } catch (error) {
       console.error("회원가입 에러: ", error);
       setError(
