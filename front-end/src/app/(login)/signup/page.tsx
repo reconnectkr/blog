@@ -63,10 +63,12 @@ export default function SignupPage() {
 
       router.push("/login");
       alert(`${username}님 로그인 후 이용 부탁드립니다.`);
-    } catch (err) {
-      console.error("회원가입 에러: ", err);
+    } catch (error) {
+      console.error("회원가입 에러: ", error);
       setError(
-        err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+        error instanceof Error
+          ? error.message
+          : "알 수 없는 오류가 발생했습니다."
       );
     } finally {
       setLoading(false);

@@ -1,55 +1,37 @@
 "use client";
 
-import React, { createContext, useState, useContext, useEffect } from "react";
+import { ReactNode, createContext, useContext, useState } from "react";
 
-interface User {
-  email: string;
-  username: string;
-  name: string;
-  password: string;
-}
-
+// 로그인 상태와 토큰 타입 정의
 interface AuthContextType {
-  isLoggedIn: boolean;
-  user: User | null;
-  login: (token: string, user: User) => void;
+  accessToken: string | null;
+  refreshToken: string | null;
+  login: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const storedUser = localStorage.getItem("user");
-    if (token && storedUser) {
-      setIsLoggedIn(true);
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
-
-  // api response가 토큰 두 개만 내뱉는데 그걸 이용해서 어떻게 유저의 정보를 받아올 수 있지? 그걸 해결해야 함.
-  const login = (token: string, user: User) => {
-    localStorage.setItem("authToken", token);
-    localStorage.setItem("user", JSON.stringify(user));
-    setIsLoggedIn(true);
-    setUser(user);
+  const login = (newAccessToken: string, newRefreshToken: string) => {
+    setAccessToken(newAccessToken);
+    setRefreshToken(newRefreshToken);
+    localStorage.setItem("accessToken", newAccessToken);
+    localStorage.setItem("refreshToken", newRefreshToken);
   };
 
   const logout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    setIsLoggedIn(false);
-    setUser(null);
+    setAccessToken(null);
+    setRefreshToken(null);
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, user, login, logout }}>
+    <AuthContext.Provider value={{ accessToken, refreshToken, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -57,7 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
