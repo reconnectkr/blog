@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -15,14 +15,14 @@ export default function LoginPage() {
   const { login } = useAuth();
 
   const validateForm = () => {
-    if (!username || !password) {
+    if (!email || !password) {
       setError("모든 필드를 채워주세요.");
       return false;
     }
-    if (username.length < 2) {
-      setError("닉네임은 2자 이상이어야 합니다.");
-      return false;
-    }
+    // if (email.length < 2) {
+    //   setError("이메일 형식에 맞게 ");
+    //   return false;
+    // }
     if (password.length < 8) {
       setError("비밀번호는 8자 이상이어야 합니다.");
       return false;
@@ -39,12 +39,12 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:4000/api/v1/login", {
+      const response = await fetch("/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
@@ -54,19 +54,16 @@ export default function LoginPage() {
 
       console.log("로그인 성공!");
       const data = await response.json();
-      login(data.token, {
-        email: data.email,
-        username: data.username,
-        name: data.name,
-        password: data.password,
-      });
+      login(data.accessToken, data.refreshToken);
 
       router.push("/");
-      alert(`${username}님 환영합니다!`);
-    } catch (err) {
-      console.error("로그인 에러: ", err);
+      alert(`${email}님 환영합니다!`);
+    } catch (error) {
+      console.error("로그인 에러: ", error);
       setError(
-        err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+        error instanceof Error
+          ? error.message
+          : "알 수 없는 오류가 발생했습니다."
       );
     } finally {
       setLoading(false);
@@ -94,21 +91,21 @@ export default function LoginPage() {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label
-                htmlFor="username"
+                htmlFor="email"
                 className="block text-sm font-medium text-gray-700"
               >
-                닉네임
+                이메일
               </label>
               <div className="mt-1">
                 <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  autoComplete="username"
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
                   required
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
             </div>

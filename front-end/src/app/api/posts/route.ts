@@ -1,47 +1,30 @@
-import { IPost } from "@/app/interfaces";
-import fs from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
-
-function calculateReadingTime(content: string): number {
-  const wordsPerMinute = 200;
-  const wordCount = content.split(/\s+/).length;
-  return Math.ceil(wordCount / wordsPerMinute);
-}
 
 export async function POST(request: NextRequest) {
-  const { title, content, authorId, category } = await request.json();
+  const body = await request.json();
+  const authHeader = request.headers.get("Authorization");
 
-  const newPost: IPost = {
-    id: Date.now(),
-    slug: title.toLowerCase().replace(/ /g, "-"),
-    title,
-    category,
-    authorId,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    content,
-    readingTime: calculateReadingTime(content),
-  };
-
-  const postContent = JSON.stringify(newPost, null, 2);
-  const filePath = path.join(
-    process.cwd(),
-    "data",
-    "posts",
-    `${newPost.slug}.json`
-  );
-
-  try {
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-
-    await fs.writeFile(filePath, postContent);
+  if (!authHeader) {
     return NextResponse.json(
-      { message: "Post saved successfully as JSON", post: newPost },
-      { status: 200 }
+      { message: "Authorization header is missing" },
+      { status: 401 }
     );
-  } catch (error) {
-    console.error("Error saving post:", error);
-    return NextResponse.json({ message: "Error saving post" }, { status: 500 });
   }
+
+  const response = await fetch("http://localhost:4000/api/v1/post", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: authHeader,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    return NextResponse.json(data, { status: response.status });
+  }
+
+  return NextResponse.json(data, { status: 200 });
 }

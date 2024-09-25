@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from "@/app/context/AuthContext";
-import createCategory from "@/lib/createCategory";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -16,29 +15,58 @@ export default function WritePage() {
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("");
   const router = useRouter();
-  const { isLoggedIn, user } = useAuth();
+  const { accessToken, refreshAccessToken } = useAuth();
 
   const handleSubmit = async () => {
-    if (!isLoggedIn) {
+    if (!accessToken) {
       alert("로그인이 필요합니다.");
       router.push("/login");
       return;
     }
 
-    // 프론트엔드에서 버튼 클릭 시 api 요청 보내는 것. (로컬이든 아니든 상관 없이 일단 api 요청을 보낸 것.)
     try {
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           title,
           content,
-          authorId: user?.username,
-          category: createCategory(category),
+          categories: [category],
         }),
       });
+
+      if (response.status === 401) {
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+          const retryResponse = await fetch("/api/posts", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${newToken}`,
+            },
+            body: JSON.stringify({
+              title,
+              content,
+              categories: [category],
+            }),
+          });
+
+          if (retryResponse.ok) {
+            const data = await retryResponse.json();
+            console.log("Post saved:", data.post);
+            alert("포스트가 성공적으로 저장되었습니다.");
+            router.push("/posts");
+          } else {
+            throw new Error("Failed to save the post after token refresh");
+          }
+        } else {
+          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+          router.push("/login");
+        }
+      }
 
       if (response.ok) {
         const data = await response.json();
@@ -46,7 +74,8 @@ export default function WritePage() {
         alert("포스트가 성공적으로 저장되었습니다.");
         router.push("/posts");
       } else {
-        throw new Error("Failed to save the post");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to save the post");
       }
     } catch (error) {
       console.error("Error saving post:", error);
@@ -54,32 +83,7 @@ export default function WritePage() {
     }
   };
 
-  //   api 연결 완료 시 이 코드 수정해서 사용
-  //   try {
-  //     const response = await fetch("/api/v1/posts", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         title,
-  //         content,
-  //         authorId: user?.username,
-  //       }),
-  //     });
-
-  //     if (response.ok) {
-  //       router.push("/posts");
-  //     } else {
-  //       throw new Error("Failed to save the post");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error saving post:", error);
-  //     alert("글 저장에 실패했습니다. 다시 시도해주세요.");
-  //   }
-  // };
-
-  if (!isLoggedIn) {
+  if (!accessToken) {
     return (
       <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold mb-6">로그인이 필요합니다</h1>
