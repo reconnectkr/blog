@@ -15,10 +15,10 @@ export default function WritePage() {
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("");
   const router = useRouter();
-  const { isLoggedIn, user } = useAuth();
+  const { accessToken } = useAuth();
 
   const handleSubmit = async () => {
-    if (!isLoggedIn) {
+    if (!accessToken) {
       alert("로그인이 필요합니다.");
       router.push("/login");
       return;
@@ -29,7 +29,7 @@ export default function WritePage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           title,
@@ -44,7 +44,7 @@ export default function WritePage() {
         alert("포스트가 성공적으로 저장되었습니다.");
         router.push("/posts");
       } else {
-        const errorData = await response.json(); // 서버에서 보낸 에러 메시지 받기
+        const errorData = await response.json();
         throw new Error(errorData.message || "Failed to save the post");
       }
     } catch (error) {
@@ -53,7 +53,7 @@ export default function WritePage() {
     }
   };
 
-  if (!isLoggedIn) {
+  if (!accessToken) {
     return (
       <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold mb-6">로그인이 필요합니다</h1>
