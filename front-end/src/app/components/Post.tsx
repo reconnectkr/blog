@@ -1,8 +1,8 @@
-"use client";
-
 import formattedDate from "@/lib/formattedDate";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
+import remarkGfm from "remark-gfm";
 import { IPost } from "../interfaces";
 
 interface PostProps {
@@ -38,7 +38,9 @@ export default function Post({ postData }: PostProps) {
             <span>작성자 ID: {postData.authorId}</span>
           </div>
           <div className="prose max-w-none">
-            <ReactMarkdown>{postData.content}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+              {postData.content}
+            </ReactMarkdown>
           </div>
         </div>
       </article>
