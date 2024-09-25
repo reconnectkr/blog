@@ -8,12 +8,12 @@ import {
   useState,
 } from "react";
 
-// 로그인 상태와 토큰 타입 정의
 interface AuthContextType {
   accessToken: string | null;
   refreshToken: string | null;
   login: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
+  refreshAccessToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,8 +45,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("refreshToken");
   };
 
+  const refreshAccessToken = async (): Promise<string | null> => {
+    if (!refreshToken) return null;
+
+    try {
+      const response = await fetch(
+        "http://localhost:4000/api/v1/auth/refresh",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ refreshToken }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setAccessToken(data.accessToken);
+        localStorage.setItem("accessToken", data.accessToken);
+        return data.accessToken;
+      } else {
+        logout();
+        return null;
+      }
+    } catch (error) {
+      console.error("Failed to refresh token:", error);
+      logout();
+      return null;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ accessToken, refreshToken, login, logout }}>
+    <AuthContext.Provider
+      value={{ accessToken, refreshToken, login, logout, refreshAccessToken }}
+    >
       {children}
     </AuthContext.Provider>
   );

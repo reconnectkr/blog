@@ -15,7 +15,7 @@ export default function WritePage() {
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("");
   const router = useRouter();
-  const { accessToken } = useAuth();
+  const { accessToken, refreshAccessToken } = useAuth();
 
   const handleSubmit = async () => {
     if (!accessToken) {
@@ -34,9 +34,39 @@ export default function WritePage() {
         body: JSON.stringify({
           title,
           content,
-          categories: category,
+          categories: [category],
         }),
       });
+
+      if (response.status === 401) {
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+          const retryResponse = await fetch("/api/posts", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${newToken}`,
+            },
+            body: JSON.stringify({
+              title,
+              content,
+              categories: [category],
+            }),
+          });
+
+          if (retryResponse.ok) {
+            const data = await retryResponse.json();
+            console.log("Post saved:", data.post);
+            alert("포스트가 성공적으로 저장되었습니다.");
+            router.push("/posts");
+          } else {
+            throw new Error("Failed to save the post after token refresh");
+          }
+        } else {
+          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+          router.push("/login");
+        }
+      }
 
       if (response.ok) {
         const data = await response.json();
