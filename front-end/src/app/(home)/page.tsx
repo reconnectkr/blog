@@ -1,7 +1,8 @@
 import formattedDate from "@/lib/formattedDate";
 import Link from "next/link";
-import { remark } from "remark";
-import html from "remark-html";
+import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
+import remarkGfm from "remark-gfm";
 import {
   getAllPosts,
   getMostRecentPost,
@@ -22,11 +23,6 @@ async function MostRecentPost() {
     );
   }
 
-  const processedContent = await remark()
-    .use(html)
-    .process(mostRecentPost.content);
-  const contentHtml = processedContent.toString();
-
   return (
     <section className="flex flex-col gap-4">
       <h2 className="text-3xl font-bold">최신 포스트</h2>
@@ -36,10 +32,11 @@ async function MostRecentPost() {
           {formattedDate(mostRecentPost.updatedAt)} •{" "}
           {mostRecentPost.readingTime} min read
         </p>
-        <div
-          className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: contentHtml }}
-        />
+        <div className="prose max-w-none">
+          <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+            {mostRecentPost.content}
+          </ReactMarkdown>
+        </div>
         <Link
           href={`/posts/${mostRecentPost.category.href}/${mostRecentPost.id}`}
           className="inline-block text-blue-600 hover:underline"
