@@ -97,9 +97,11 @@ export async function getPostBySlug(slug: string): Promise<IPost | null> {
   return posts.find((post) => post.slug === slug) || null;
 }
 
-export async function getPostById(id: number): Promise<IPost | null> {
+export async function getPostById(id: string | number): Promise<IPost | null> {
   const posts = await getAllPosts();
-  return posts.find((post) => post.id === id) || null;
+  const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+  const post = posts.find((post) => post.id === numericId);
+  return post || null;
 }
 
 export async function getAllCategories() {
