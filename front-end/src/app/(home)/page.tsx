@@ -4,10 +4,26 @@ import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import {
-  getAllPosts,
+  // getAllPosts,
   getMostRecentPost,
   getRecentPosts,
 } from "../../lib/posts";
+import { IPost } from "../interfaces";
+
+async function getAllPosts(): Promise<IPost[]> {
+  const response = await fetch("http://localhost:3000/api/posts", {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch all posts");
+  }
+
+  return response.json();
+}
 
 async function MostRecentPost() {
   const mostRecentPost = await getMostRecentPost();
@@ -95,9 +111,9 @@ async function RecentPosts() {
 }
 
 async function AllPosts() {
-  const allPosts = await getAllPosts();
+  const posts = await getAllPosts(); // api/posts/route.ts의 GET api를 호출
 
-  if (allPosts.length == 0) {
+  if (!posts || posts.length === 0) {
     return (
       <section className="flex flex-col gap-4">
         <h2 className="text-3xl font-bold">최근 포스트</h2>
@@ -112,7 +128,7 @@ async function AllPosts() {
     <section className="flex flex-col gap-4">
       <h2 className="text-2xl font-bold">모든 포스트</h2>
       <ul className="flex flex-col gap-4">
-        {allPosts.map((post) => (
+        {posts.map((post) => (
           <li
             key={post.slug}
             className="bg-white shadow-sm rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
