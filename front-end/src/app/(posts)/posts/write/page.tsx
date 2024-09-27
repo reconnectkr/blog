@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/app/context/AuthContext";
+import { getAllCategories } from "@/lib/api";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -26,29 +27,8 @@ export default function WritePage() {
       return;
     }
 
-    fetchCategories();
+    getAllCategories();
   }, [accessToken]);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch("/api/categories", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      if (response.ok) {
-        const { items } = await response.json();
-        const categoryNames = items.map(
-          (item: { id: number; name: string }) => item.name
-        );
-        setAvailableCategories(categoryNames);
-      } else {
-        console.error("Failed to fetch categories");
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    }
-  };
 
   const handleAddCategory = async () => {
     if (newCategory) {
@@ -111,8 +91,6 @@ export default function WritePage() {
           title,
           content,
           categories: selectedCategories,
-          // authorId: user?.username,
-          authorId: "pointjunseo@naver.com",
         }),
       });
 

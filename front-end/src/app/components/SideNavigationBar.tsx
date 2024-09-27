@@ -1,12 +1,9 @@
-import { romanizeCategory } from "@/lib/createCategory";
-import { getAllCategories } from "@/lib/posts";
+import { getAllCategories } from "@/lib/api";
 import { INavigationItem } from "../interfaces";
 import NavigationItem from "./NavigationItem";
 
 export default async function SideNavigationBar() {
   const categories = await getAllCategories();
-
-  // const uniqueCategoryLabels = new Set<string>();
 
   const navigationItems: INavigationItem[] = [
     { href: "/", label: "홈" },
@@ -16,25 +13,10 @@ export default async function SideNavigationBar() {
       subItems: [
         { href: "/posts", label: "전체" },
         ...categories.map((category) => ({
-          href: `/posts/${romanizeCategory(category).toLowerCase()}`,
-          label: category,
+          href: `/posts/category/${category.id}`,
+          label: category.name,
         })),
       ],
-      // subItems: categories
-      //   .filter((category) => {
-      //     if (uniqueCategoryLabels.has(category.label)) {
-      //       return false;
-      //     }
-      //     uniqueCategoryLabels.add(category.label);
-      //     return true;
-      //   })
-      //   .map((category) => ({
-      //     href:
-      //       category.label === "전체"
-      //         ? category.href
-      //         : `/posts/${category.href.toLowerCase()}`,
-      //     label: category.label,
-      //   })),
     },
   ];
 

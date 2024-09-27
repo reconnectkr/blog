@@ -1,13 +1,13 @@
 import PostBox from "@/app/components/PostBox";
-import { getPostsByCategory } from "@/lib/posts";
+import { getPostsByCategory } from "@/lib/api";
 import Link from "next/link";
 
 export default async function CategoryPage({
   params,
 }: {
-  params: { category: string };
+  params: { categoryId: number };
 }) {
-  const posts = await getPostsByCategory(params.category);
+  const posts = await getPostsByCategory(params.categoryId);
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -23,7 +23,7 @@ export default async function CategoryPage({
         </div>
         <div className="space-y-6 mt-6">
           {posts.map((post) => (
-            <PostBox key={post.slug} post={post} />
+            <PostBox key={post.id} post={post} />
           ))}
         </div>
       </div>
