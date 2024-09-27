@@ -44,7 +44,7 @@ export async function getAllCategories(): Promise<ICategory[]> {
   return response.items;
 }
 
-export async function getPostsByCategory(categoryId: string): Promise<IPost[]> {
+export async function getPostsByCategory(categoryId: number): Promise<IPost[]> {
   const postResponse = await fetchAPI("/post");
   const posts: IPost[] = postResponse.items;
   const argumentId = Number(categoryId);
