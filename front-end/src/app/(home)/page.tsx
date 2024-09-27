@@ -54,7 +54,7 @@ async function MostRecentPost() {
           </ReactMarkdown>
         </div>
         <Link
-          href={`/posts/${mostRecentPost.category.href}/${mostRecentPost.id}`}
+          href={`/posts/${mostRecentPost.id}`}
           className="inline-block text-blue-600 hover:underline"
         >
           계속 읽기
@@ -67,7 +67,7 @@ async function MostRecentPost() {
 async function RecentPosts() {
   const recentPosts = await getRecentPosts(3);
 
-  if (!recentPosts) {
+  if (!recentPosts || recentPosts.length === 0) {
     return (
       <section className="flex flex-col gap-4">
         <h2 className="text-3xl font-bold">최근 포스트</h2>
@@ -83,11 +83,7 @@ async function RecentPosts() {
       <h2 className="text-2xl font-bold">최근 포스트</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {recentPosts.map((post) => (
-          <Link
-            key={post.slug}
-            href={`/posts/${post.category.href}/${post.id}`}
-            className="block"
-          >
+          <Link key={post.slug} href={`/posts/${post.id}`} className="block">
             <div className="flex flex-col bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow duration-200 gap-2">
               {/* {post.data.coverImage && (
                 <Image
@@ -116,7 +112,7 @@ async function AllPosts() {
   if (!posts || posts.length === 0) {
     return (
       <section className="flex flex-col gap-4">
-        <h2 className="text-3xl font-bold">최근 포스트</h2>
+        <h2 className="text-3xl font-bold">모든 포스트</h2>
         <div className="bg-white shadow-lg rounded-lg p-6">
           <p>아직 게시된 포스트가 없습니다.</p>
         </div>
@@ -133,10 +129,7 @@ async function AllPosts() {
             key={post.slug}
             className="bg-white shadow-sm rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
           >
-            <Link
-              href={`/posts/${post.category.href}/${post.id}`}
-              className="block"
-            >
+            <Link href={`/posts/${post.id}`} className="block">
               <h3 className="text-lg font-semibold mb-1">{post.title}</h3>
               <p className="text-gray-600 text-sm">
                 {formattedDate(post.updatedAt)} • {post.readingTime} min read

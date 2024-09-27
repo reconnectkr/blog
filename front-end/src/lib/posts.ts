@@ -107,12 +107,13 @@ export async function getPostById(id: string | number): Promise<IPost | null> {
 export async function getAllCategories() {
   const posts = await getAllPosts();
   const categories = Array.from(
-    new Set(posts.map((post) => post.category))
+    new Set(posts.flatMap((post) => post.categories))
   ).filter(Boolean);
-  return [{ href: "/posts", label: "전체" }, ...categories];
+
+  return categories;
 }
 
-export async function getPostsByCategory(href: string): Promise<IPost[]> {
+export async function getPostsByCategory(category: string): Promise<IPost[]> {
   const posts = await getAllPosts();
-  return posts.filter((post) => post.category.href === href);
+  return posts.filter((post) => post.categories.includes(category));
 }

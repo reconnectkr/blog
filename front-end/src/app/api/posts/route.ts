@@ -1,29 +1,33 @@
-import { IPost } from "@/app/interfaces";
+import { ICategory, IPost } from "@/app/interfaces";
 import { getAllPosts } from "@/lib/posts";
 import fs from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 
 // 로컬에 저장하는 api
-function calculateReadingTime(content: string): number {
-  const wordsPerMinute = 200;
-  const wordCount = content.split(/\s+/).length;
-  return Math.ceil(wordCount / wordsPerMinute);
-}
-
 export async function POST(request: NextRequest) {
-  const { title, content, authorId, category } = await request.json();
+  const {
+    title,
+    content,
+    categories,
+    authorId,
+  }: {
+    title: string;
+    content: string;
+    categories: ICategory[];
+    authorId: string;
+  } = await request.json();
 
   const newPost: IPost = {
     id: Date.now(),
     slug: title.toLowerCase().replace(/ /g, "-"),
     title,
-    category,
+    categories,
     authorId,
     createdAt: new Date(),
     updatedAt: new Date(),
     content,
-    readingTime: calculateReadingTime(content),
+    readingTime: Math.ceil(content.split(" ").length / 200),
   };
 
   const postContent = JSON.stringify(newPost, null, 2);
@@ -36,15 +40,18 @@ export async function POST(request: NextRequest) {
 
   try {
     await fs.mkdir(path.dirname(filePath), { recursive: true });
-
     await fs.writeFile(filePath, postContent);
+
     return NextResponse.json(
       { message: "Post saved successfully as JSON", post: newPost },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error saving post:", error);
-    return NextResponse.json({ message: "Error saving post" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error saving post", error: error },
+      { status: 500 }
+    );
   }
 }
 

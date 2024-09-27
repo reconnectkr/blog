@@ -2,10 +2,7 @@ export interface IPost {
   id: number;
   slug: string;
   title: string;
-  category: {
-    label: string;
-    href: string;
-  };
+  categories: string[];
   authorId: string;
   createdAt: Date;
   updatedAt: Date;
