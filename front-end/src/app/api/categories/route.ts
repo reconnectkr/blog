@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
 
     if (!authHeader) {
       return NextResponse.json(
-        { message: "Authorization header is missing in POST API" },
+        { message: "Authorization header is missing" },
         { status: 401 }
       );
     }
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
 
     if (!authHeader) {
       return NextResponse.json(
-        { message: "Authorization header is missing in GET API" },
+        { message: "Authorization header is missing" },
         { status: 401 }
       );
     }
