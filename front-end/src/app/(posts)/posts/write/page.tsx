@@ -18,40 +18,36 @@ export default function WritePage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const router = useRouter();
-  const { accessToken, refreshAccessToken } = useAuth();
-  // const { user } = useAuth();
+  const { accessToken, executeAuthenticatedAction } = useAuth();
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const categories = await getAllCategories();
+        const categories = await executeAuthenticatedAction(() =>
+          getAllCategories()
+        );
         setAvailableCategories(categories.map((category) => category.name));
       } catch (error) {
         console.error("Failed to fetch categories:", error);
+        alert(
+          "카테고리를 불러오는데 실패했습니다. 페이지를 새로고침 해주세요."
+        );
       }
     };
 
-    if (!accessToken) {
-      console.log("토큰이 아직 준비되지 않았습니다.");
-      return;
+    if (accessToken) {
+      fetchCategories();
     }
-
-    fetchCategories();
-  }, [accessToken]);
+  }, [accessToken, executeAuthenticatedAction]);
 
   const handleAddCategory = async () => {
     if (newCategory) {
       try {
-        const createdCategory = await createCategory(
-          { name: newCategory },
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
+        const createdCategory = await executeAuthenticatedAction(() =>
+          createCategory({ name: newCategory })
         );
-        setSelectedCategories([...selectedCategories, createdCategory.name]);
-        setAvailableCategories([...availableCategories, createdCategory.name]);
+        setSelectedCategories((prev) => [...prev, createdCategory.name]);
+        setAvailableCategories((prev) => [...prev, createdCategory.name]);
         setNewCategory("");
       } catch (error) {
         console.error("Error creating category:", error);
@@ -63,73 +59,29 @@ export default function WritePage() {
   };
 
   const handleRemoveCategory = (category: string) => {
-    setSelectedCategories(
-      selectedCategories.filter(
-        (selectedCategory) => selectedCategory !== category
-      )
+    setSelectedCategories((prev) =>
+      prev.filter((selectedCategory) => selectedCategory !== category)
     );
   };
 
   const handleSelectCategory = (category: string) => {
     if (!selectedCategories.includes(category)) {
-      setSelectedCategories([...selectedCategories, category]);
+      setSelectedCategories((prev) => [...prev, category]);
     }
   };
 
   const handleSubmit = async () => {
-    if (!accessToken) {
-      alert("로그인이 필요합니다.");
-      router.push("/login");
-      return;
-    }
-
     try {
-      const postData = {
-        title,
-        content,
-        categories: selectedCategories,
-      };
-
-      const savedPost = await createPost(postData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const postData = { title, content, categories: selectedCategories };
+      const savedPost = await executeAuthenticatedAction(() =>
+        createPost(postData)
+      );
       console.log("Post saved:", savedPost);
       alert("포스트가 성공적으로 저장되었습니다.");
       router.push("/posts");
     } catch (error) {
       console.error("Error saving post:", error);
-      if (error instanceof Error && error.message === "API error: 401") {
-        try {
-          const newToken = await refreshAccessToken();
-          if (newToken) {
-            // 토큰 갱신 후 다시 시도
-            const postData = {
-              title,
-              content,
-              categories: selectedCategories,
-            };
-            const savedPost = await createPost(postData, {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-            });
-            console.log("Post saved after token refresh:", savedPost);
-            alert("포스트가 성공적으로 저장되었습니다.");
-            router.push("/posts");
-          } else {
-            alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-            router.push("/login");
-          }
-        } catch (refreshError) {
-          console.error("Error refreshing token:", refreshError);
-          alert("세션 갱신에 실패했습니다. 다시 로그인해주세요.");
-          router.push("/login");
-        }
-      } else {
-        alert("글 저장에 실패했습니다. 다시 시도해주세요.");
-      }
+      alert("글 저장에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
