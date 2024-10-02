@@ -1,13 +1,29 @@
+"use client";
+
 import PostBox from "@/app/components/PostBox";
+import { IPost } from "@/app/interfaces";
 import { getPostsByCategory } from "@/lib/api";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
-export default async function CategoryPage({
+export default function CategoryPage({
   params,
 }: {
   params: { categoryId: number };
 }) {
-  const posts = await getPostsByCategory(params.categoryId);
+  const [posts, setPosts] = useState<IPost[]>([]);
+  useEffect(() => {
+    const fetchPostsByCategory = async () => {
+      try {
+        const postsByCategory = await getPostsByCategory(params.categoryId);
+        setPosts(postsByCategory);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+
+    fetchPostsByCategory();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
