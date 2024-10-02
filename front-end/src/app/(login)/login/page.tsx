@@ -19,10 +19,6 @@ export default function LoginPage() {
       setError("모든 필드를 채워주세요.");
       return false;
     }
-    // if (email.length < 2) {
-    //   setError("이메일 형식에 맞게 ");
-    //   return false;
-    // }
     if (password.length < 8) {
       setError("비밀번호는 8자 이상이어야 합니다.");
       return false;
@@ -39,7 +35,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/login", {
+      const response = await fetch("http://localhost:4000/api/v1/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
