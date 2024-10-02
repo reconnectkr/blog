@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/app/context/AuthContext";
-import { getAllCategories } from "@/lib/api";
+import { createCategory, createPost, getAllCategories } from "@/lib/api";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -22,40 +22,43 @@ export default function WritePage() {
   // const { user } = useAuth();
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categories = await getAllCategories();
+        setAvailableCategories(categories.map((category) => category.name));
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+
     if (!accessToken) {
       console.log("토큰이 아직 준비되지 않았습니다.");
       return;
     }
 
-    getAllCategories();
+    fetchCategories();
   }, [accessToken]);
 
   const handleAddCategory = async () => {
     if (newCategory) {
       try {
-        const response = await fetch("api/categories", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({ name: newCategory }),
-        });
-
-        if (response.ok) {
-          const createdCategory = await response.json();
-          setSelectedCategories([...selectedCategories, createdCategory.name]);
-          setAvailableCategories([
-            ...availableCategories,
-            createdCategory.name,
-          ]);
-          setNewCategory("");
-        } else {
-          console.error("Failed to create category");
-        }
+        const createdCategory = await createCategory(
+          { name: newCategory },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+        setSelectedCategories([...selectedCategories, createdCategory.name]);
+        setAvailableCategories([...availableCategories, createdCategory.name]);
+        setNewCategory("");
       } catch (error) {
         console.error("Error creating category:", error);
+        alert("카테고리 생성에 실패했습니다. 다시 시도해주세요.");
       }
+    } else {
+      alert("카테고리를 입력하세요.");
     }
   };
 
@@ -81,76 +84,52 @@ export default function WritePage() {
     }
 
     try {
-      const response = await fetch("/api/posts", {
-        method: "POST",
+      const postData = {
+        title,
+        content,
+        categories: selectedCategories,
+      };
+
+      const savedPost = await createPost(postData, {
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          title,
-          content,
-          categories: selectedCategories,
-        }),
       });
-
-      if (response.status === 401) {
-        const newToken = await refreshAccessToken();
-        if (newToken) {
-          const retryResponse = await fetch("/api/posts", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${newToken}`,
-            },
-            body: JSON.stringify({
+      console.log("Post saved:", savedPost);
+      alert("포스트가 성공적으로 저장되었습니다.");
+      router.push("/posts");
+    } catch (error) {
+      console.error("Error saving post:", error);
+      if (error instanceof Error && error.message === "API error: 401") {
+        try {
+          const newToken = await refreshAccessToken();
+          if (newToken) {
+            // 토큰 갱신 후 다시 시도
+            const postData = {
               title,
               content,
               categories: selectedCategories,
-              // authorId: user?.username,
-              authorId: "pointjunseo@naver.com",
-            }),
-          });
-
-          if (retryResponse.ok) {
-            const data = await retryResponse.json();
-            console.log("Post saved:", data.post);
+            };
+            const savedPost = await createPost(postData, {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            });
+            console.log("Post saved after token refresh:", savedPost);
             alert("포스트가 성공적으로 저장되었습니다.");
             router.push("/posts");
           } else {
-            throw new Error("Failed to save the post after token refresh");
+            alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+            router.push("/login");
           }
-        } else {
-          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        } catch (refreshError) {
+          console.error("Error refreshing token:", refreshError);
+          alert("세션 갱신에 실패했습니다. 다시 로그인해주세요.");
           router.push("/login");
         }
-      }
-
-      if (response.ok) {
-        const data = response.headers
-          .get("Content-Type")
-          ?.includes("application/json")
-          ? await response.json()
-          : null;
-
-        if (data) {
-          console.log("Post saved:", data.post);
-          alert("포스트가 성공적으로 저장되었습니다.");
-          router.push("/posts");
-        } else {
-          alert("서버에서 유효한 응답을 받지 못했습니다.");
-        }
       } else {
-        const errorData = response.headers
-          .get("Content-Type")
-          ?.includes("application/json")
-          ? await response.json()
-          : { message: "Unknown error" };
-        throw new Error(errorData.message || "Failed to save the post");
+        alert("글 저장에 실패했습니다. 다시 시도해주세요.");
       }
-    } catch (error) {
-      console.error("Error saving post:", error);
-      alert("글 저장에 실패했습니다. 다시 시도해주세요.");
     }
   };
 

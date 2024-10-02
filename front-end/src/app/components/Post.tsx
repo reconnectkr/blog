@@ -17,12 +17,17 @@ export default function Post({ postData }: PostProps) {
           홈
         </Link>
         {" > "}
-        <Link
-          href={`/posts/${postData.category.href}`}
-          className="text-blue-600 hover:underline"
-        >
-          {postData.category.label}
-        </Link>
+        {postData.categories.map((category, index) => (
+          <span key={category.id}>
+            <Link
+              href={`/posts/${category.id}`}
+              className="text-blue-600 hover:underline"
+            >
+              {category.name}
+            </Link>
+            {index < postData.categories.length - 1 && ", "}
+          </span>
+        ))}
         {" > "}
         <span className="text-gray-600">{postData.title}</span>
       </nav>
@@ -33,9 +38,21 @@ export default function Post({ postData }: PostProps) {
           <div className="flex items-center text-gray-600 text-sm mb-6">
             <span>{formattedDate(postData.createdAt)}</span>
             <span className="mx-2">•</span>
-            <span>{postData.category.label}</span>
+            <span>
+              {postData.categories.map((category, index) => (
+                <span key={category.id}>
+                  <Link
+                    href={`/posts/${category.id}`}
+                    className="hover:underline"
+                  >
+                    {category.name}
+                  </Link>
+                  {index < postData.categories.length - 1 && ", "}
+                </span>
+              ))}
+            </span>
             <span className="mx-2">•</span>
-            <span>작성자 ID: {postData.authorId}</span>
+            <span>작성자 ID: {postData.id}</span>
           </div>
           <div className="prose max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
@@ -50,12 +67,16 @@ export default function Post({ postData }: PostProps) {
       </div>
 
       <div className="mt-8">
-        <Link
-          href={`/posts/${postData.category.href}`}
-          className="text-blue-600 hover:underline"
-        >
-          ← {postData.category.label} 카테고리의 다른 글 보기
-        </Link>
+        {postData.categories.map((category) => (
+          <div key={category.id} className="mb-2">
+            <Link
+              href={`/posts/${category.id}`}
+              className="text-blue-600 hover:underline"
+            >
+              ← {category.name} 카테고리의 다른 글 보기
+            </Link>
+          </div>
+        ))}
       </div>
     </div>
   );
