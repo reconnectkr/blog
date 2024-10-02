@@ -1,9 +1,24 @@
+"use client";
+
 import { getAllCategories } from "@/lib/api";
-import { INavigationItem } from "../interfaces";
+import { useEffect, useState } from "react";
+import { ICategory, INavigationItem } from "../interfaces";
 import NavigationItem from "./NavigationItem";
 
-export default async function SideNavigationBar() {
-  const categories = await getAllCategories();
+export default function SideNavigationBar() {
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categories = await getAllCategories();
+        setCategories(categories.map((category) => category));
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const navigationItems: INavigationItem[] = [
     { href: "/", label: "홈" },
