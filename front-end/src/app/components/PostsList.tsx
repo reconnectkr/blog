@@ -1,29 +1,43 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { IPost } from "../interfaces";
+import { ICategory, IPost } from "../interfaces";
 import PostBox from "./PostBox";
 import PostsListFilter from "./PostsListFilter";
-import Link from "next/link";
+import { getAllCategories } from "@/lib/api";
 
 interface PostsListProps {
-  initialPosts: IPost[];
+  posts: IPost[];
 }
 
-export default function PostsList({ initialPosts }: PostsListProps) {
-  const [categories, setCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+export default function PostsList({ posts }: PostsListProps) {
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<ICategory[]>([]);
 
   useEffect(() => {
-    const uniqueCategories = Array.from(
-      new Set(initialPosts.map((post) => post.category.label))
-    ).filter((category): category is string => Boolean(category));
-    setCategories(uniqueCategories);
-  }, [initialPosts]);
+    const fetchCategories = async () => {
+      try {
+        const categories = await getAllCategories();
+        setCategories(categories.map((category) => category));
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
 
-  const filteredPosts = selectedCategory
-    ? initialPosts.filter((post) => post.category.label === selectedCategory)
-    : initialPosts;
+    fetchCategories();
+  }, []);
+
+  const filteredPosts =
+    selectedCategories.length > 0
+      ? posts.filter((post) =>
+          selectedCategories.every((selectedCategory) =>
+            post.categories.some(
+              (postCategory) => postCategory.id === selectedCategory.id
+            )
+          )
+        )
+      : posts;
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -40,13 +54,13 @@ export default function PostsList({ initialPosts }: PostsListProps) {
 
         <PostsListFilter
           categories={categories}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
+          selectedCategories={selectedCategories}
+          onCategoryChange={setSelectedCategories}
         />
 
         <div className="space-y-6 mt-6">
           {filteredPosts.map((post) => (
-            <PostBox key={post.slug} post={post} />
+            <PostBox key={post.id} post={post} />
           ))}
         </div>
       </div>

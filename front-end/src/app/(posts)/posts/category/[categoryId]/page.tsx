@@ -1,13 +1,29 @@
-import PostBox from "@/app/components/PostBox";
-import { getPostsByCategory } from "@/lib/posts";
-import Link from "next/link";
+"use client";
 
-export default async function CategoryPage({
+import PostBox from "@/app/components/PostBox";
+import { IPost } from "@/app/interfaces";
+import { getPostsByCategory } from "@/lib/api";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+export default function CategoryPage({
   params,
 }: {
-  params: { category: string };
+  params: { categoryId: number };
 }) {
-  const posts = await getPostsByCategory(params.category);
+  const [posts, setPosts] = useState<IPost[]>([]);
+  useEffect(() => {
+    const fetchPostsByCategory = async () => {
+      try {
+        const postsByCategory = await getPostsByCategory(params.categoryId);
+        setPosts(postsByCategory);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+
+    fetchPostsByCategory();
+  }, [params.categoryId]);
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -23,7 +39,7 @@ export default async function CategoryPage({
         </div>
         <div className="space-y-6 mt-6">
           {posts.map((post) => (
-            <PostBox key={post.slug} post={post} />
+            <PostBox key={post.id} post={post} />
           ))}
         </div>
       </div>

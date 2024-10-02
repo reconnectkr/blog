@@ -1,5 +1,5 @@
 import Post from "@/app/components/Post";
-import { getPostById } from "@/lib/posts";
+import { getPost } from "@/lib/api";
 
 export default async function PostPage({
   params,
@@ -7,7 +7,7 @@ export default async function PostPage({
   params: { category: string; id: number };
 }) {
   try {
-    const postData = await getPostById(params.id);
+    const postData = await getPost(params.id);
 
     if (!postData) {
       return <div>No post found.</div>;

@@ -1,14 +1,10 @@
+import { ICategory } from "./category";
+
 export interface IPost {
   id: number;
-  slug: string;
   title: string;
-  category: {
-    label: string;
-    href: string;
-  };
-  authorId: string;
+  content: string;
   createdAt: Date;
   updatedAt: Date;
-  content: string;
-  readingTime?: number;
+  categories: ICategory[];
 }

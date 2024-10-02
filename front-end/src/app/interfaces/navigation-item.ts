@@ -1,6 +1,5 @@
-import { ICategory } from "./category";
-
 export interface INavigationItem {
-  category: ICategory;
-  subItems?: ICategory[];
+  href: string;
+  label: string;
+  subItems?: INavigationItem[];
 }

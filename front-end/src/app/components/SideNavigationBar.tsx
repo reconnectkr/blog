@@ -1,34 +1,37 @@
-import { getAllCategories } from "@/lib/posts";
-import { INavigationItem } from "../interfaces";
+"use client";
+
+import { getAllCategories } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { ICategory, INavigationItem } from "../interfaces";
 import NavigationItem from "./NavigationItem";
 
-export default async function SideNavigationBar() {
-  const categories = await getAllCategories();
+export default function SideNavigationBar() {
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categories = await getAllCategories();
+        setCategories(categories.map((category) => category));
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
 
-  const uniqueCategoryLabels = new Set<string>();
+    fetchCategories();
+  }, []);
 
   const navigationItems: INavigationItem[] = [
-    { category: { href: "/", label: "홈" } },
+    { href: "/", label: "홈" },
     {
-      category: {
-        href: "/posts",
-        label: "포스트",
-      },
-      subItems: categories
-        .filter((category) => {
-          if (uniqueCategoryLabels.has(category.label)) {
-            return false;
-          }
-          uniqueCategoryLabels.add(category.label);
-          return true;
-        })
-        .map((category) => ({
-          href:
-            category.label === "전체"
-              ? category.href
-              : `/posts/${category.href.toLowerCase()}`,
-          label: category.label,
+      href: "/posts",
+      label: "포스트",
+      subItems: [
+        { href: "/posts", label: "전체" },
+        ...categories.map((category) => ({
+          href: `/posts/category/${category.id}`,
+          label: category.name,
         })),
+      ],
     },
   ];
 
@@ -36,7 +39,7 @@ export default async function SideNavigationBar() {
     <nav className="bg-white w-64 flex-shrink-0 border-r p-4">
       <ul className="space-y-2">
         {navigationItems.map((item) => (
-          <NavigationItem key={item.category.href} {...item} />
+          <NavigationItem key={item.href} {...item} />
         ))}
       </ul>
     </nav>

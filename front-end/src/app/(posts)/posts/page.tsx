@@ -1,7 +1,7 @@
 import PostsList from "@/app/components/PostsList";
-import { getAllPosts } from "@/lib/posts";
+import { getAllPosts } from "@/lib/api";
 
 export default async function PostsPage() {
-  const initialPosts = await getAllPosts();
-  return <PostsList initialPosts={initialPosts} />;
+  const posts = await getAllPosts();
+  return <PostsList posts={posts} />;
 }
