@@ -1,82 +1,87 @@
-import Image from "next/image";
-import Link from "next/link";
+"use client";
 
-interface IUser {
-  name: string;
-  image: string;
-  bio: string;
-}
+import { useAuth } from "@/app/context/AuthContext";
+import { IUser } from "@/app/interfaces";
+import { getUserInfo } from "@/lib/api";
+import { useEffect, useState } from "react";
 
-interface IPostInProfile {
-  id: number;
-  title: string;
-  date: string;
-  readingTime: number;
-}
+export default function ProfilePage() {
+  const { accessToken } = useAuth();
+  const [userInfo, setUserInfo] = useState<IUser | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-const user: IUser = {
-  name: "홍길동",
-  image: "/images/profile.jpg",
-  bio: "안녕하세요. 프론트엔드 개발자 홍길동입니다.",
-};
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (!accessToken) {
+        setError("액세스 토큰이 없습니다. 다시 로그인해주세요.");
+        return;
+      }
 
-const dummyPosts: IPostInProfile[] = [
-  { id: 1, title: "첫 번째 게시물", date: "2024-09-20", readingTime: 5 },
-  { id: 2, title: "두 번째 게시물", date: "2024-09-22", readingTime: 3 },
-  { id: 3, title: "세 번째 게시물", date: "2024-09-24", readingTime: 7 },
-];
+      try {
+        const information = await getUserInfo(accessToken, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        setUserInfo(information);
+      } catch (error) {
+        console.error("Failed to fetch user information:", error);
+        setError("사용자 정보를 불러오는 데 실패했습니다.");
+      }
+    };
 
-interface IUserInfo {
-  user: IUser;
-}
+    fetchUserInfo();
+  }, [accessToken]);
 
-function UserInfo({ user }: IUserInfo) {
-  return (
-    <div className="flex items-center space-x-4 bg-white shadow-lg rounded-lg p-6">
-      <Image
-        src={user.image}
-        alt={user.name}
-        width={100}
-        height={100}
-        className="rounded-full"
-      />
-      <div>
-        <h2 className="text-2xl font-bold">{user.name}</h2>
-        <p className="text-gray-600">{user.bio}</p>
-      </div>
-    </div>
-  );
-}
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
 
-interface IUserPosts {
-  posts: IPostInProfile[];
-}
-function UserPosts({ posts }: IUserPosts) {
-  return (
-    <section className="mt-8">
-      <h3 className="text-xl font-bold mb-4">작성한 게시물</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {posts.map((post) => (
-          <Link key={post.id} href={`/posts/${post.id}`} className="block">
-            <div className="bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
-              <h4 className="text-lg font-semibold mb-2">{post.title}</h4>
-              <p className="text-gray-600 text-sm">
-                {post.date} • {post.readingTime} min read
-              </p>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
+  if (!userInfo) {
+    return <div>로딩 중...</div>;
+  }
 
-export default async function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <UserInfo user={user} />
-        <UserPosts posts={dummyPosts} />
+        <h1 className="text-3xl font-bold mb-4">프로필</h1>
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="px-4 py-5 sm:px-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">
+              사용자 정보
+            </h3>
+          </div>
+          <div className="border-t border-gray-200">
+            <dl>
+              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">이름</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  {userInfo.name}
+                </dd>
+              </div>
+              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">사용자명</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  {userInfo.username}
+                </dd>
+              </div>
+              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">
+                  휴대폰 번호
+                </dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  {userInfo.mobile || "미등록"}
+                </dd>
+              </div>
+              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">??</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  ??
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
       </div>
     </div>
   );

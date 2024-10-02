@@ -1,6 +1,11 @@
-import { ICategory, IPost } from "@/app/interfaces";
+import { ICategory, IPost, IUser } from "@/app/interfaces";
+import { jwtDecode } from "jwt-decode";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+interface DecodedToken {
+  userId: string;
+}
 
 export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   const response = await fetch(`${API_URL}${endpoint}`, {
@@ -76,6 +81,20 @@ export async function getPostsByCategory(categoryId: number): Promise<IPost[]> {
   );
 
   return postsByCategory;
+}
+
+export async function getUserInfo(
+  accessToken: string,
+  options: RequestInit = {}
+): Promise<IUser> {
+  const decodedToken = jwtDecode<DecodedToken>(accessToken);
+  const userId = decodedToken.userId;
+
+  const response = await fetchAPI(`/user/${userId}`, {
+    ...options,
+  });
+
+  return response;
 }
 
 // POST API 함수들
