@@ -22,7 +22,14 @@ export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
 // GET API 함수들
 export async function getAllPosts(): Promise<IPost[]> {
   const response = await fetchAPI("/post?pageSize=200"); // 왜 여기 쿼리 스트링으로 페이지 사이즈를 넘겨줘야만 하는거지??
-  return response.items;
+  const posts = response.items;
+
+  const sortedPosts = posts.sort(
+    (a: IPost, b: IPost) =>
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
+
+  return sortedPosts;
 }
 
 export async function getPost(id: number): Promise<IPost> {
@@ -31,13 +38,27 @@ export async function getPost(id: number): Promise<IPost> {
 }
 
 export async function getMostRecentPost(): Promise<IPost | null> {
-  const posts = await getAllPosts();
-  return posts.length > 0 ? posts[0] : null;
+  const response = await fetchAPI("/post?pageSize=200");
+  const posts = response.items;
+
+  const sortedPosts = posts.sort(
+    (a: IPost, b: IPost) =>
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
+
+  return sortedPosts.length > 0 ? sortedPosts[0] : null;
 }
 
 export async function getRecentPosts(count: number): Promise<IPost[]> {
-  const posts = await getAllPosts();
-  return posts.slice(0, count);
+  const response = await fetchAPI("/post?pageSize=200");
+  const posts = response.items;
+
+  const sortedPosts = posts.sort(
+    (a: IPost, b: IPost) =>
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
+
+  return sortedPosts.slice(0, count);
 }
 
 export async function getAllCategories(): Promise<ICategory[]> {

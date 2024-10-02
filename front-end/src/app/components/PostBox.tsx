@@ -21,9 +21,9 @@ export default function PostBox({ post }: PostBoxProps) {
       </div>
       <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
         <p className="text-sm text-gray-500">
-          {/* {post.content.length > 200
+          {typeof post.content === "string" && post.content.length > 200
             ? `${post.content.substring(0, 200)}...`
-            : post.content} */}
+            : post.content}
         </p>
         <div className="mt-4">
           <Link
