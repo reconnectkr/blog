@@ -21,8 +21,7 @@ export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
 
 // GET API 함수들
 export async function getAllPosts(): Promise<IPost[]> {
-  const response = await fetchAPI("/post");
-  console.log(response);
+  const response = await fetchAPI("/post?pageSize=200"); // 왜 여기 쿼리 스트링으로 페이지 사이즈를 넘겨줘야만 하는거지??
   return response.items;
 }
 
