@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ICategory, IPost } from "../interfaces";
 import PostBox from "./PostBox";
 import PostsListFilter from "./PostsListFilter";
+import { getAllCategories } from "@/lib/api";
 
 interface PostsListProps {
   posts: IPost[];
@@ -15,18 +16,25 @@ export default function PostsList({ posts }: PostsListProps) {
   const [selectedCategories, setSelectedCategories] = useState<ICategory[]>([]);
 
   useEffect(() => {
-    const uniqueCategories = Array.from(
-      new Set(posts.flatMap((post) => post.categories))
-    ).filter((category): category is ICategory => Boolean(category));
+    const fetchCategories = async () => {
+      try {
+        const categories = await getAllCategories();
+        setCategories(categories.map((category) => category));
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
 
-    setCategories(uniqueCategories);
-  }, [posts]);
+    fetchCategories();
+  }, []);
 
   const filteredPosts =
     selectedCategories.length > 0
       ? posts.filter((post) =>
-          post.categories.some((category) =>
-            selectedCategories.includes(category)
+          selectedCategories.every((selectedCategory) =>
+            post.categories.some(
+              (postCategory) => postCategory.id === selectedCategory.id
+            )
           )
         )
       : posts;
