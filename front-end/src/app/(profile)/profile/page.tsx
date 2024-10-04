@@ -15,35 +15,40 @@ import { getUserInfo, updateUserInfo } from "@/lib/api";
 import React, { useEffect, useState } from "react";
 
 export default function ProfilePage() {
-  const { accessToken } = useAuth();
+  const { accessToken, executeAuthenticatedAction } = useAuth();
   const [userInfo, setUserInfo] = useState<IUser | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedInfo, setEditedInfo] = useState<IUser | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
       if (!accessToken) {
-        setError("액세스 토큰이 없습니다. 다시 로그인해주세요.");
+        setIsLoading(false);
         return;
       }
 
       try {
-        const information = await getUserInfo(accessToken, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+        const information = await executeAuthenticatedAction(() =>
+          getUserInfo(accessToken, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          })
+        );
         setUserInfo(information);
         setEditedInfo(information);
       } catch (error) {
         console.error("Failed to fetch user information:", error);
         setError("사용자 정보를 불러오는 데 실패했습니다.");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchUserInfo();
-  }, [accessToken]);
+  }, [accessToken, executeAuthenticatedAction]);
 
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
@@ -65,11 +70,13 @@ export default function ProfilePage() {
     if (!editedInfo || !accessToken) return;
 
     try {
-      await updateUserInfo(editedInfo, accessToken, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      await executeAuthenticatedAction(() =>
+        updateUserInfo(editedInfo, accessToken, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+      );
       setUserInfo(editedInfo);
       setIsEditing(false);
       console.log("User information updated successfully");
@@ -79,12 +86,24 @@ export default function ProfilePage() {
     }
   };
 
+  if (isLoading) {
+    return <div>로딩 중...</div>;
+  }
+
+  if (!accessToken) {
+    return (
+      <div className="text-red-500">
+        액세스 토큰이 없습니다. 다시 로그인해주세요.
+      </div>
+    );
+  }
+
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
 
   if (!userInfo) {
-    return <div>로딩 중...</div>;
+    return <div>사용자 정보를 불러올 수 없습니다.</div>;
   }
 
   return (

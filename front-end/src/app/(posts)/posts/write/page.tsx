@@ -83,7 +83,7 @@ export default function WritePage() {
       const savedPost = await executeAuthenticatedAction(() =>
         createPost(postData, {
           headers: {
-            Authorization: `Bearer ${accessToken}`, // Authorization 추가
+            Authorization: `Bearer ${accessToken}`,
           },
         })
       );

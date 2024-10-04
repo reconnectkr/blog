@@ -15,7 +15,6 @@ export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
       "Content-Type": "application/json",
     },
   });
-  // console.log(response);
 
   if (!response.ok) {
     console.error("API error: ", await response.text());
