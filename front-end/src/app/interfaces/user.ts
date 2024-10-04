@@ -5,4 +5,5 @@ export interface IUser {
   mobile?: string;
   photo?: string;
   departmentId?: string;
+  active?: boolean;
 }

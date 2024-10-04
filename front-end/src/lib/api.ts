@@ -15,6 +15,7 @@ export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
       "Content-Type": "application/json",
     },
   });
+  // console.log(response);
 
   if (!response.ok) {
     console.error("API error: ", await response.text());
@@ -132,13 +133,11 @@ export const updateUserInfo = async (
   accessToken: string,
   options?: RequestInit
 ) => {
-  const endpoint = "/api/user";
+  const decodedToken = jwtDecode<DecodedToken>(accessToken);
+  const userId = decodedToken.userId;
+  const endpoint = `/user/${userId}`;
   const updatedOptions: RequestInit = {
     method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      ...(options?.headers || {}),
-    },
     body: JSON.stringify(updatedInfo),
     ...options,
   };
