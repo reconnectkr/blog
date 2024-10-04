@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "@/app/components/Card";
 import { Input } from "@/app/components/Input";
-import { Label } from "@/app/components/Label";
 import { useAuth } from "@/app/context/AuthContext";
 import { IUser } from "@/app/interfaces";
 import { getUserInfo, updateUserInfo } from "@/lib/api";
@@ -80,32 +79,21 @@ export default function ProfilePage() {
       );
       setUserInfo(editedInfo);
       setIsEditing(false);
-      console.log("User information updated successfully");
     } catch (error) {
       console.error("Failed to update user information:", error);
       setError("사용자 정보를 업데이트하는 데 실패했습니다.");
     }
   };
 
-  if (isLoading) {
-    return <div>로딩 중...</div>;
-  }
-
-  if (!accessToken) {
+  if (isLoading) return <div>로딩 중...</div>;
+  if (!accessToken)
     return (
       <div className="text-red-500">
         액세스 토큰이 없습니다. 다시 로그인해주세요.
       </div>
     );
-  }
-
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
-  }
-
-  if (!userInfo) {
-    return <div>사용자 정보를 불러올 수 없습니다.</div>;
-  }
+  if (error) return <div className="text-red-500">{error}</div>;
+  if (!userInfo) return <div>사용자 정보를 불러올 수 없습니다.</div>;
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -121,47 +109,64 @@ export default function ProfilePage() {
             </Button>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">이름</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={isEditing ? editedInfo?.name || "" : userInfo.name}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="username">사용자명</Label>
-                <Input
-                  id="username"
-                  name="username"
-                  value={
-                    isEditing ? editedInfo?.username || "" : userInfo.username
-                  }
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="mobile">휴대폰 번호</Label>
-                <Input
-                  id="mobile"
-                  name="mobile"
-                  value={
-                    isEditing
-                      ? editedInfo?.mobile || ""
-                      : userInfo.mobile || "미등록"
-                  }
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                />
-              </div>
+            <form onSubmit={handleSubmit}>
+              <dl className="divide-y divide-gray-200">
+                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                  <dt className="text-sm font-medium text-gray-500">이름</dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:col-span-2">
+                    {isEditing ? (
+                      <Input
+                        name="name"
+                        value={editedInfo?.name || ""}
+                        onChange={handleInputChange}
+                        className="mt-0"
+                      />
+                    ) : (
+                      userInfo.name
+                    )}
+                  </dd>
+                </div>
+                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                  <dt className="text-sm font-medium text-gray-500">
+                    사용자명
+                  </dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:col-span-2">
+                    {isEditing ? (
+                      <Input
+                        name="username"
+                        value={editedInfo?.username || ""}
+                        onChange={handleInputChange}
+                        className="mt-0"
+                      />
+                    ) : (
+                      userInfo.username
+                    )}
+                  </dd>
+                </div>
+                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                  <dt className="text-sm font-medium text-gray-500">
+                    휴대폰 번호
+                  </dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:col-span-2">
+                    {isEditing ? (
+                      <Input
+                        name="mobile"
+                        value={editedInfo?.mobile || ""}
+                        onChange={handleInputChange}
+                        className="mt-0"
+                      />
+                    ) : (
+                      userInfo.mobile || "미등록"
+                    )}
+                  </dd>
+                </div>
+              </dl>
               {isEditing && (
-                <Button type="submit" className="w-full">
-                  저장
-                </Button>
+                <div className="mt-6">
+                  <Button type="submit" className="w-full">
+                    저장
+                  </Button>
+                </div>
               )}
             </form>
           </CardContent>
