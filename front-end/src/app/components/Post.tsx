@@ -43,7 +43,9 @@ export default function Post({ postData }: PostProps) {
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-3xl font-bold">{postData.title}</h1>
             <Button
-              onClick={() => router.push(`/write?mode=edit&id=${postData.id}`)}
+              onClick={() =>
+                router.push(`/posts/write?mode=edit&id=${postData.id}`)
+              }
             >
               수정하기
             </Button>
