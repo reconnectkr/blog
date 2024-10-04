@@ -25,7 +25,7 @@ export default async function (fastify: FastifyInstance) {
 
   fastify.get<{ Params: { postId: string } }>(
     '/:postId',
-    { onRequest: [fastify.authenticate] },
+    // { onRequest: [fastify.authenticate] },
     async (
       req: FastifyRequest<{ Params: { postId: string } }>,
       res: FastifyReply
@@ -69,7 +69,7 @@ export default async function (fastify: FastifyInstance) {
 
   fastify.get(
     '/',
-    { onRequest: [fastify.authenticate] },
+    // { onRequest: [fastify.authenticate] },
     async (req: FastifyRequest, res: FastifyReply) => {
       const validatedQueryString = ListPostQueryStringSchema.parse(req.query);
       const { filter, orderBy } = validatedQueryString;

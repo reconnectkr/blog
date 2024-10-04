@@ -1,6 +1,11 @@
-import { ICategory, IPost } from "@/app/interfaces";
+import { ICategory, IPost, IUser } from "@/app/interfaces";
+import { jwtDecode } from "jwt-decode";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+interface DecodedToken {
+  userId: string;
+}
 
 export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   const response = await fetch(`${API_URL}${endpoint}`, {
@@ -75,7 +80,26 @@ export async function getPostsByCategory(categoryId: number): Promise<IPost[]> {
     post.categories.some((category: ICategory) => category.id === argumentId)
   );
 
-  return postsByCategory;
+  const sortedPostsByCategory = postsByCategory.sort(
+    (a: IPost, b: IPost) =>
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
+
+  return sortedPostsByCategory;
+}
+
+export async function getUserInfo(
+  accessToken: string,
+  options: RequestInit = {}
+): Promise<IUser> {
+  const decodedToken = jwtDecode<DecodedToken>(accessToken);
+  const userId = decodedToken.userId;
+
+  const response = await fetchAPI(`/user/${userId}`, {
+    ...options,
+  });
+
+  return response;
 }
 
 // POST API 함수들
@@ -107,21 +131,20 @@ export async function createCategory(
   return response;
 }
 
-// PUT API 함수들 (예시)
-export async function updatePost(
-  id: number,
-  postData: Partial<IPost>
-): Promise<IPost> {
-  const response = await fetchAPI(`/post/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(postData),
-  });
-  return response;
-}
+// PATCH API 함수들
+export const updateUserInfo = async (
+  updatedInfo: Partial<IUser>,
+  accessToken: string,
+  options?: RequestInit
+) => {
+  const decodedToken = jwtDecode<DecodedToken>(accessToken);
+  const userId = decodedToken.userId;
+  const endpoint = `/user/${userId}`;
+  const updatedOptions: RequestInit = {
+    method: "PATCH",
+    body: JSON.stringify(updatedInfo),
+    ...options,
+  };
 
-// DELETE API 함수들 (예시)
-export async function deletePost(id: number): Promise<void> {
-  await fetchAPI(`/post/${id}`, {
-    method: "DELETE",
-  });
-}
+  return fetchAPI(endpoint, updatedOptions);
+};

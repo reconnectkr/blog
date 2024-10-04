@@ -29,7 +29,7 @@ export default async function (fastify: FastifyInstance) {
 
   fastify.get<{ Params: { categoryId: string } }>(
     '/:categoryId',
-    { onRequest: [fastify.authenticate] },
+    // { onRequest: [fastify.authenticate] },
     async (
       req: FastifyRequest<{ Params: { categoryId: string } }>,
       res: FastifyReply
@@ -53,7 +53,7 @@ export default async function (fastify: FastifyInstance) {
 
   fastify.get(
     '/',
-    { onRequest: [fastify.authenticate] },
+    // { onRequest: [fastify.authenticate] },
     async (req: FastifyRequest, res: FastifyReply) => {
       const validatedQueryString = ListCategoryQueryStringSchema.parse(
         req.query

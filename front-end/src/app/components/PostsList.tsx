@@ -1,19 +1,33 @@
 "use client";
 
+import { getAllCategories, getAllPosts } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ICategory, IPost } from "../interfaces";
 import PostBox from "./PostBox";
 import PostsListFilter from "./PostsListFilter";
-import { getAllCategories } from "@/lib/api";
 
 interface PostsListProps {
-  posts: IPost[];
+  initialPosts: IPost[];
 }
 
-export default function PostsList({ posts }: PostsListProps) {
+export default function PostsList({ initialPosts }: PostsListProps) {
+  const [posts, setPosts] = useState<IPost[]>(initialPosts);
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<ICategory[]>([]);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const updatedPosts = await getAllPosts();
+        setPosts(updatedPosts);
+      } catch (error) {
+        console.error("Failed to fetch posts:", error);
+      }
+    };
+
+    fetchPosts();
+  }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
