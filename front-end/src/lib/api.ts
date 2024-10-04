@@ -7,6 +7,12 @@ interface DecodedToken {
   userId: string;
 }
 
+interface PostData {
+  title: string;
+  content: string;
+  categories: string[];
+}
+
 export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
@@ -37,7 +43,7 @@ export async function getAllPosts(): Promise<IPost[]> {
   return sortedPosts;
 }
 
-export async function getPost(id: number): Promise<IPost> {
+export async function getPost(id: string): Promise<IPost> {
   const response = await fetchAPI(`/post/${id}`);
   return response;
 }
@@ -104,11 +110,7 @@ export async function getUserInfo(
 
 // POST API 함수들
 export async function createPost(
-  postData: {
-    title: string;
-    content: string;
-    categories: string[];
-  },
+  postData: PostData,
   options: RequestInit = {}
 ): Promise<IPost> {
   const response = await fetchAPI("/post", {
@@ -147,4 +149,30 @@ export const updateUserInfo = async (
   };
 
   return fetchAPI(endpoint, updatedOptions);
+};
+
+export const updatePost = async (
+  updatedPostId: string,
+  updatedPostData: PostData,
+  options?: RequestInit
+) => {
+  const endpoint = `/post/${updatedPostId}`;
+  console.log("Updating post at endpoint:", endpoint);
+  console.log("Update data:", updatedPostData);
+  const updatedOptions: RequestInit = {
+    method: "PATCH",
+    body: JSON.stringify(updatedPostData),
+    ...options,
+  };
+  try {
+    return fetchAPI(endpoint, updatedOptions);
+  } catch (error) {
+    console.error("Error updating post:", {
+      updatedPostId,
+      endpoint,
+      updatedPostData,
+      error,
+    });
+    throw error;
+  }
 };

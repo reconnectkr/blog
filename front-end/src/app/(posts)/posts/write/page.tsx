@@ -1,9 +1,15 @@
 "use client";
 
 import { useAuth } from "@/app/context/AuthContext";
-import { createCategory, createPost, getAllCategories } from "@/lib/api";
+import {
+  createCategory,
+  createPost,
+  getAllCategories,
+  getPost,
+  updatePost,
+} from "@/lib/api";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const MDEditor = dynamic(
@@ -17,28 +23,45 @@ export default function WritePage() {
   const [newCategory, setNewCategory] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { accessToken, executeAuthenticatedAction } = useAuth();
 
+  const mode = searchParams?.get("mode") || "create";
+  const postId = searchParams?.get("id");
+
   useEffect(() => {
-    const fetchCategories = async () => {
+    const initialize = async () => {
+      if (!accessToken) return;
+
       try {
         const categories = await executeAuthenticatedAction(() =>
           getAllCategories()
         );
         setAvailableCategories(categories.map((category) => category.name));
+
+        if (mode === "edit" && postId) {
+          console.log("Fetching post for editing:", postId);
+          const post = await executeAuthenticatedAction(() => getPost(postId));
+          if (!post) {
+            throw new Error(`포스트를 찾을 수 없습니다. (ID: ${postId})`);
+          }
+          setTitle(post.title);
+          setContent(post.content);
+          setSelectedCategories(post.categories.map((cat) => cat.name));
+        }
       } catch (error) {
-        console.error("Failed to fetch categories:", error);
-        alert(
-          "카테고리를 불러오는데 실패했습니다. 페이지를 새로고침 해주세요."
-        );
+        console.error("Initialization error:", error);
+        alert(`데이터를 불러오는데 실패했습니다: ${error}`);
+        router.push("/posts");
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    if (accessToken) {
-      fetchCategories();
-    }
-  }, [accessToken, executeAuthenticatedAction]);
+    initialize();
+  }, [accessToken, executeAuthenticatedAction, mode, postId, router]);
 
   const handleAddCategory = async () => {
     if (newCategory) {
@@ -58,7 +81,7 @@ export default function WritePage() {
         setNewCategory("");
       } catch (error) {
         console.error("Error creating category:", error);
-        alert("카테고리 생성에 실패했습니다. 다시 시도해주세요.");
+        alert("카테고리 생성에 실패했습니다.");
       }
     } else {
       alert("카테고리를 입력하세요.");
@@ -78,21 +101,33 @@ export default function WritePage() {
   };
 
   const handleSubmit = async () => {
+    const postData = { title, content, categories: selectedCategories };
+
     try {
-      const postData = { title, content, categories: selectedCategories };
-      const savedPost = await executeAuthenticatedAction(() =>
-        createPost(postData, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        })
-      );
-      console.log("Post saved:", savedPost);
-      alert("포스트가 성공적으로 저장되었습니다.");
+      if (mode === "edit" && postId) {
+        console.log("Updating post:", postId, postData);
+        await executeAuthenticatedAction(() =>
+          updatePost(postId, postData, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          })
+        );
+        alert("포스트가 성공적으로 수정되었습니다.");
+      } else {
+        await executeAuthenticatedAction(() =>
+          createPost(postData, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          })
+        );
+        alert("포스트가 성공적으로 작성되었습니다.");
+      }
       router.push("/posts");
     } catch (error) {
       console.error("Error saving post:", error);
-      alert("글 저장에 실패했습니다. 다시 시도해주세요.");
+      alert(`포스트 저장에 실패했습니다: ${error}`);
     }
   };
 
@@ -110,9 +145,15 @@ export default function WritePage() {
     );
   }
 
+  if (isLoading) {
+    return <div className="container mx-auto p-6">로딩 중...</div>;
+  }
+
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">새 글 작성</h1>
+      <h1 className="text-3xl font-bold mb-6">
+        {mode === "edit" ? "글 수정" : "새 글 작성"}
+      </h1>
       <input
         type="text"
         placeholder="제목을 입력하세요"
@@ -173,7 +214,7 @@ export default function WritePage() {
         onClick={handleSubmit}
         className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200"
       >
-        저장
+        {mode === "edit" ? "수정" : "저장"}
       </button>
     </div>
   );
