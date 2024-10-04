@@ -1,8 +1,12 @@
+"use client";
+
 import formattedDate from "@/lib/formattedDate";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
+import { Button } from "../components/Button";
 import { IPost } from "../interfaces";
 
 interface PostProps {
@@ -10,6 +14,8 @@ interface PostProps {
 }
 
 export default function Post({ postData }: PostProps) {
+  const router = useRouter();
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <nav className="mb-8">
@@ -34,7 +40,14 @@ export default function Post({ postData }: PostProps) {
 
       <article className="bg-white shadow-lg rounded-lg overflow-hidden">
         <div className="p-6">
-          <h1 className="text-3xl font-bold mb-4">{postData.title}</h1>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-3xl font-bold">{postData.title}</h1>
+            <Button
+              onClick={() => router.push(`/write?mode=edit&id=${postData.id}`)}
+            >
+              수정하기
+            </Button>
+          </div>
           <div className="flex items-center text-gray-600 text-sm mb-6">
             <span>{formattedDate(postData.createdAt)}</span>
             <span className="mx-2">•</span>

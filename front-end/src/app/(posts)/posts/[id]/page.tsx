@@ -4,7 +4,7 @@ import { getPost } from "@/lib/api";
 export default async function PostPage({
   params,
 }: {
-  params: { category: string; id: number };
+  params: { category: string; id: string };
 }) {
   try {
     const postData = await getPost(params.id);
