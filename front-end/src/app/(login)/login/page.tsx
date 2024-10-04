@@ -35,23 +35,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:4000/api/v1/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "로그인 중 오류가 발생했습니다.");
-      }
-
-      console.log("로그인 성공!");
-      const data = await response.json();
-      login(data.accessToken, data.refreshToken);
-
+      await login(email, password);
       router.push("/");
       alert(`${email}님 환영합니다!`);
     } catch (error) {

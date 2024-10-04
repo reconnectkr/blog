@@ -1,4 +1,5 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import {
   ReactNode,
@@ -13,7 +14,7 @@ interface AuthContextType {
   accessToken: string | null;
   refreshToken: string | null;
   user: IUser | null;
-  login: (accessToken: string, refreshToken: string) => void;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   refreshAccessToken: () => Promise<string | null>;
   fetchUserInfo: () => Promise<void>;
@@ -38,12 +39,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const login = (newAccessToken: string, newRefreshToken: string) => {
-    setAccessToken(newAccessToken);
-    setRefreshToken(newRefreshToken);
-    localStorage.setItem("accessToken", newAccessToken);
-    localStorage.setItem("refreshToken", newRefreshToken);
-    fetchUserInfo();
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await fetch("http://localhost:4000/api/v1/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "로그인 중 오류가 발생했습니다.");
+      }
+
+      const data = await response.json();
+
+      setAccessToken(data.accessToken);
+      setRefreshToken(data.refreshToken);
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      await fetchUserInfo();
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
   };
 
   const logout = () => {
@@ -57,16 +78,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const refreshAccessToken = async (): Promise<string | null> => {
     if (!refreshToken) return null;
     try {
-      const response = await fetch(
-        "http://localhost:4000/api/v1/auth/refresh",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ refreshToken }),
-        }
-      );
+      const response = await fetch("http://localhost:4000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
       if (response.ok) {
         const data = await response.json();
         setAccessToken(data.accessToken);
@@ -86,7 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchUserInfo = async () => {
     if (!accessToken) return;
     try {
-      const response = await fetch("http://localhost:4000/api/v1/user/me", {
+      const response = await fetch("http://localhost:4000/api/user", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
