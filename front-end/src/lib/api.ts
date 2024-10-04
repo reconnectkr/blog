@@ -34,6 +34,8 @@ export async function getAllPosts(): Promise<IPost[]> {
       new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
 
+  console.log(sortedPosts);
+
   return sortedPosts;
 }
 
