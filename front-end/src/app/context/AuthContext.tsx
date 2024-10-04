@@ -39,6 +39,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  useEffect(() => {
+    if (accessToken) {
+      const refreshTokenInterval = setInterval(async () => {
+        await refreshAccessToken();
+      }, 14 * 60 * 1000);
+
+      return () => clearTimeout(refreshTokenInterval);
+    }
+  }, [accessToken]);
+
   const login = async (email: string, password: string) => {
     try {
       const response = await fetch("http://localhost:4000/api/v1/login", {
@@ -78,7 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const refreshAccessToken = async (): Promise<string | null> => {
     if (!refreshToken) return null;
     try {
-      const response = await fetch("http://localhost:4000/api/login", {
+      const response = await fetch("http://localhost:4000/api/v1/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -104,7 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchUserInfo = async () => {
     if (!accessToken) return;
     try {
-      const response = await fetch("http://localhost:4000/api/user", {
+      const response = await fetch("http://localhost:4000/api/v1/user", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

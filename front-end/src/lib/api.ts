@@ -128,8 +128,8 @@ export async function createCategory(
 
 // PATCH API 함수들
 export const updateUserInfo = async (
-  accessToken: string,
   updatedInfo: Partial<IUser>,
+  accessToken: string,
   options?: RequestInit
 ) => {
   const endpoint = "/api/user";
