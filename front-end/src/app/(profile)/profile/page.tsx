@@ -12,6 +12,7 @@ import { Label } from "@/app/components/Label";
 import { useAuth } from "@/app/context/AuthContext";
 import { IUser } from "@/app/interfaces";
 import { getUserInfo, updateUserInfo } from "@/lib/api";
+import { removeNullProperties } from "@/lib/removeNullProperties";
 import React, { useEffect, useState } from "react";
 
 export default function ProfilePage() {
@@ -71,7 +72,7 @@ export default function ProfilePage() {
 
     try {
       await executeAuthenticatedAction(() =>
-        updateUserInfo(editedInfo, accessToken, {
+        updateUserInfo(removeNullProperties(editedInfo), accessToken, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
