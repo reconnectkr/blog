@@ -44,7 +44,14 @@ export default function WritePage() {
     if (newCategory) {
       try {
         const createdCategory = await executeAuthenticatedAction(() =>
-          createCategory({ name: newCategory })
+          createCategory(
+            { name: newCategory },
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          )
         );
         setSelectedCategories((prev) => [...prev, createdCategory.name]);
         setAvailableCategories((prev) => [...prev, createdCategory.name]);
@@ -74,7 +81,11 @@ export default function WritePage() {
     try {
       const postData = { title, content, categories: selectedCategories };
       const savedPost = await executeAuthenticatedAction(() =>
-        createPost(postData)
+        createPost(postData, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Authorization 추가
+          },
+        })
       );
       console.log("Post saved:", savedPost);
       alert("포스트가 성공적으로 저장되었습니다.");

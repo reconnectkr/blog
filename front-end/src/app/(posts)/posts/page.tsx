@@ -3,5 +3,5 @@ import { getAllPosts } from "@/lib/api";
 
 export default async function PostsPage() {
   const posts = await getAllPosts();
-  return <PostsList posts={posts} />;
+  return <PostsList initialPosts={posts} />;
 }

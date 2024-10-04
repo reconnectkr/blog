@@ -126,21 +126,22 @@ export async function createCategory(
   return response;
 }
 
-// PUT API 함수들 (예시)
-export async function updatePost(
-  id: number,
-  postData: Partial<IPost>
-): Promise<IPost> {
-  const response = await fetchAPI(`/post/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(postData),
-  });
-  return response;
-}
+// PATCH API 함수들
+export const updateUserInfo = async (
+  accessToken: string,
+  updatedInfo: Partial<IUser>,
+  options?: RequestInit
+) => {
+  const endpoint = "/api/user";
+  const updatedOptions: RequestInit = {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      ...(options?.headers || {}),
+    },
+    body: JSON.stringify(updatedInfo),
+    ...options,
+  };
 
-// DELETE API 함수들 (예시)
-export async function deletePost(id: number): Promise<void> {
-  await fetchAPI(`/post/${id}`, {
-    method: "DELETE",
-  });
-}
+  return fetchAPI(endpoint, updatedOptions);
+};
