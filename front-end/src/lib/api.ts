@@ -80,7 +80,12 @@ export async function getPostsByCategory(categoryId: number): Promise<IPost[]> {
     post.categories.some((category: ICategory) => category.id === argumentId)
   );
 
-  return postsByCategory;
+  const sortedPostsByCategory = postsByCategory.sort(
+    (a: IPost, b: IPost) =>
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
+
+  return sortedPostsByCategory;
 }
 
 export async function getUserInfo(
