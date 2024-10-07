@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await refreshAccessToken();
       }, 14 * 60 * 1000);
 
-      return () => clearTimeout(refreshTokenInterval);
+      return () => clearInterval(refreshTokenInterval);
     }
   }, [accessToken]);
 
@@ -86,26 +86,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const refreshAccessToken = async (): Promise<string | null> => {
-    if (!refreshToken) return null;
+    const storedEmail = localStorage.getItem("email");
+    const storedPassword = localStorage.getItem("password");
+
+    if (!storedEmail || !storedPassword) return null;
+
     try {
       const response = await fetch("http://localhost:4000/api/v1/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ refreshToken }),
+        body: JSON.stringify({ email: storedEmail, password: storedPassword }),
       });
+
       if (response.ok) {
         const data = await response.json();
         setAccessToken(data.accessToken);
+        setRefreshToken(data.refreshToken);
         localStorage.setItem("accessToken", data.accessToken);
+        localStorage.setItem("refreshToken", data.refreshToken);
         return data.accessToken;
       } else {
         logout();
         return null;
       }
     } catch (error) {
-      console.error("Failed to refresh token:", error);
+      console.error("Failed to refresh token by re-login:", error);
       logout();
       return null;
     }
@@ -146,17 +153,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const newToken = await refreshAccessToken();
           if (newToken) {
             return await action();
-          } else {
-            alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-            router.push("/login");
-            throw new Error("Authentication failed");
           }
         } catch (refreshError) {
           console.error("Error refreshing token:", refreshError);
-          alert("세션 갱신에 실패했습니다. 다시 로그인해주세요.");
-          router.push("/login");
-          throw new Error("Authentication failed");
         }
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        router.push("/login");
+        throw new Error("Authentication failed");
       }
       throw error;
     }
