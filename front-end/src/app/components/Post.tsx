@@ -1,6 +1,6 @@
 "use client";
 
-import { getPost } from "@/lib/api";
+import { deletePost, getPost } from "@/lib/api";
 import formattedDate from "@/lib/formattedDate";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { Button } from "../components/Button";
+import { useAuth } from "../context/AuthContext";
 import { IPost } from "../interfaces";
 
 interface PostProps {
@@ -18,7 +19,9 @@ interface PostProps {
 export default function Post({ postId }: PostProps) {
   const [post, setPost] = useState<IPost | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const router = useRouter();
+  const { accessToken, executeAuthenticatedAction } = useAuth();
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -43,13 +46,34 @@ export default function Post({ postId }: PostProps) {
     router.push(`/posts/write?mode=edit&id=${postId}`);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (
       window.confirm(
         "이 글을 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
       )
     ) {
-      console.log("Delete post:", postId);
+      setIsDeleting(true);
+      try {
+        const response = await executeAuthenticatedAction(() =>
+          deletePost(postId, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          })
+        );
+
+        console.log("Delete response: ", response);
+
+        const checkResponse = await getPost(postId);
+        console.log("Check post after deletion: ", checkResponse);
+
+        router.push("/posts");
+      } catch (error) {
+        console.error("Failed to delete post:", error);
+        alert("포스트 삭제에 실패했습니다.");
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -89,8 +113,12 @@ export default function Post({ postId }: PostProps) {
             <h1 className="text-3xl font-bold">{post.title}</h1>
             <div className="space-x-2">
               <Button onClick={handleEdit}>수정하기</Button>
-              <Button onClick={handleDelete} variant="danger">
-                삭제하기
+              <Button
+                onClick={handleDelete}
+                variant="danger"
+                disabled={isDeleting}
+              >
+                {isDeleting ? "삭제 중..." : "삭제하기"}
               </Button>
             </div>
           </div>

@@ -27,7 +27,10 @@ export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
     throw new Error(`API error: ${response.status}`);
   }
 
-  return response.json();
+  if (response.status === 204) return "204";
+
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
 }
 
 // GET API 함수들
@@ -173,6 +176,22 @@ export const updatePost = async (
       updatedPostData,
       error,
     });
+    throw error;
+  }
+};
+
+// DELETE API 함수들
+export const deletePost = async (postId: string, options?: RequestInit) => {
+  const endpoint = `/post/${postId}`;
+  const deleteOptions: RequestInit = {
+    method: "DELETE",
+    ...options,
+  };
+
+  try {
+    return fetchAPI(endpoint, deleteOptions);
+  } catch (error) {
+    console.error("Error deleting post:", { postId, endpoint, error });
     throw error;
   }
 };
