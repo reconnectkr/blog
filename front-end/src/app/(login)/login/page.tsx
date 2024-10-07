@@ -1,6 +1,8 @@
 "use client";
 
+import Dialog from "@/app/components/Dialog";
 import { useAuth } from "@/app/context/AuthContext";
+import { getUserInfo } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -10,6 +12,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [dialogMessage, setDialogMessage] = useState<string>("");
 
   const router = useRouter();
   const { login } = useAuth();
@@ -35,9 +39,18 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
-      router.push("/");
-      alert(`${email}님 환영합니다!`);
+      const newAccessToken = await login(email, password);
+
+      const userData = await getUserInfo(newAccessToken, {
+        headers: {
+          Authorization: `Bearer ${newAccessToken}`,
+        },
+      });
+      const message = userData?.username
+        ? `${userData.username}님 환영합니다!`
+        : `${email}님 환영합니다!`;
+      setDialogMessage(message);
+      setIsDialogOpen(true);
     } catch (error) {
       console.error("로그인 에러: ", error);
       setError(
@@ -48,6 +61,11 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    router.push("/");
   };
 
   return (
@@ -173,6 +191,14 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      <Dialog
+        isOpen={isDialogOpen}
+        onClose={handleCloseDialog}
+        title="로그인 성공"
+      >
+        <p className="text-sm text-gray-500">{dialogMessage}</p>
+      </Dialog>
     </div>
   );
 }
