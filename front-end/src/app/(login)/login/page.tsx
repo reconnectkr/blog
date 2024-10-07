@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/app/context/AuthContext";
+import { getUserInfo } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -12,7 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string>("");
 
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, accessToken } = useAuth();
 
   const validateForm = () => {
     if (!email || !password) {
@@ -36,8 +37,19 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
+
+      const userData = await getUserInfo(accessToken!, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (userData?.username) {
+        alert(`${userData.username}님 환영합니다!`);
+      } else {
+        alert(`${email}님 환영합니다!`);
+      }
       router.push("/");
-      alert(`${email}님 환영합니다!`);
     } catch (error) {
       console.error("로그인 에러: ", error);
       setError(

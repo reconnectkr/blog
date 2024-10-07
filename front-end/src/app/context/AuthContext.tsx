@@ -1,5 +1,6 @@
 "use client";
 
+import { getUserInfo } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import {
   ReactNode,
@@ -27,6 +28,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [user, setUser] = useState<IUser | null>(null);
+  const [shouldFetchUserInfo, setShouldFetchUserInfo] =
+    useState<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -49,6 +52,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [accessToken]);
 
+  useEffect(() => {
+    if (shouldFetchUserInfo) {
+      if (accessToken) {
+        fetchUserInfo();
+        setShouldFetchUserInfo(false);
+      }
+    }
+  }, [shouldFetchUserInfo]);
+
   const login = async (email: string, password: string) => {
     try {
       const response = await fetch("http://localhost:4000/api/v1/login", {
@@ -70,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setRefreshToken(data.refreshToken);
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
-      await fetchUserInfo();
+      setShouldFetchUserInfo(true);
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -121,24 +133,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchUserInfo = async () => {
     if (!accessToken) return;
     try {
-      const response = await fetch("http://localhost:4000/api/v1/user", {
+      const userData = await getUserInfo(accessToken, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-      if (response.ok) {
-        const userData: IUser = await response.json();
-        setUser(userData);
-      } else {
+      setUser(userData);
+    } catch (error) {
+      if (error instanceof Error && error.message === "API error: 401") {
         const newToken = await refreshAccessToken();
         if (newToken) {
           await fetchUserInfo();
         } else {
           logout();
         }
+      } else {
+        console.error("Failed to fetch user info:", error);
       }
-    } catch (error) {
-      console.error("Failed to fetch user info:", error);
     }
   };
 
