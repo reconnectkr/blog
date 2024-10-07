@@ -43,6 +43,16 @@ export default function Post({ postId }: PostProps) {
     router.push(`/posts/write?mode=edit&id=${postId}`);
   };
 
+  const handleDelete = () => {
+    if (
+      window.confirm(
+        "이 글을 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+      )
+    ) {
+      console.log("Delete post:", postId);
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -77,7 +87,12 @@ export default function Post({ postId }: PostProps) {
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-3xl font-bold">{post.title}</h1>
-            <Button onClick={handleEdit}>수정하기</Button>
+            <div className="space-x-2">
+              <Button onClick={handleEdit}>수정하기</Button>
+              <Button onClick={handleDelete} variant="danger">
+                삭제하기
+              </Button>
+            </div>
           </div>
           <div className="flex items-center text-gray-600 text-sm mb-6">
             <span>{formattedDate(post.createdAt)}</span>
