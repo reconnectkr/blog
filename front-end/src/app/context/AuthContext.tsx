@@ -15,7 +15,7 @@ interface AuthContextType {
   accessToken: string | null;
   refreshToken: string | null;
   user: IUser | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<string>;
   logout: () => void;
   refreshAccessToken: () => Promise<string | null>;
   fetchUserInfo: () => Promise<void>;
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [shouldFetchUserInfo]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<string> => {
     try {
       const response = await fetch("http://localhost:4000/api/v1/login", {
         method: "POST",
@@ -83,6 +83,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
       setShouldFetchUserInfo(true);
+
+      return data.accessToken;
     } catch (error) {
       console.error("Login error:", error);
       throw error;
