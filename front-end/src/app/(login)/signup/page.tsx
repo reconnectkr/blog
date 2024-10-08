@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Dialog from "@/app/components/Dialog";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -12,6 +12,10 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    type: "signup" | "login" | null;
+  }>({ isOpen: false, type: null });
 
   const router = useRouter();
 
@@ -35,12 +39,24 @@ export default function SignupPage() {
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = () => {
+    setDialogState({ isOpen: true, type: "login" });
+  };
+
+  const handleLoginConfirm = () => {
+    setDialogState({ isOpen: false, type: null });
+    router.push("/login");
+  };
+
+  const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    if (validateForm()) {
+      setDialogState({ isOpen: true, type: "signup" });
+    }
+  };
 
-    if (!validateForm()) return;
-
+  const handleSignupConfirm = async () => {
+    setDialogState({ isOpen: false, type: null });
     setLoading(true);
 
     try {
@@ -78,6 +94,10 @@ export default function SignupPage() {
     }
   };
 
+  const handleDialogClose = () => {
+    setDialogState({ isOpen: false, type: null });
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -96,7 +116,7 @@ export default function SignupPage() {
               {error}
             </div>
           )}
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSignup}>
             <div>
               <label
                 htmlFor="name"
@@ -205,10 +225,10 @@ export default function SignupPage() {
             <div>
               <button
                 type="submit"
-                disabled={loading}
                 className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
+                disabled={loading}
               >
                 {loading ? "처리 중..." : "회원가입"}
               </button>
@@ -227,17 +247,33 @@ export default function SignupPage() {
 
             <div className="mt-6">
               <div>
-                <Link
-                  href="/login"
+                <button
                   className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  onClick={handleLogin}
                 >
                   이미 계정이 있으신가요? 로그인
-                </Link>
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <Dialog
+        isOpen={dialogState.isOpen}
+        onClick={
+          dialogState.type === "login"
+            ? handleLoginConfirm
+            : handleSignupConfirm
+        }
+        onClose={handleDialogClose}
+        title={dialogState.type === "login" ? "로그인" : "회원가입"}
+      >
+        <p>
+          {dialogState.type === "login"
+            ? "로그인 하시겠습니까?"
+            : "입력한 정보로 가입을 하시겠습니까?"}
+        </p>
+      </Dialog>
     </div>
   );
 }
