@@ -23,9 +23,10 @@ export default function Post({ postId }: PostProps) {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
-    type: "edit" | "delete" | null;
+    type: "delete" | null;
+    title: string;
     message: string;
-  }>({ isOpen: false, type: null, message: "" });
+  }>({ isOpen: false, type: null, title: "", message: "" });
 
   const router = useRouter();
   const { accessToken, executeAuthenticatedAction } = useAuth();
@@ -50,15 +51,6 @@ export default function Post({ postId }: PostProps) {
   }, [postId]);
 
   const handleEdit = () => {
-    setDialogState({
-      isOpen: true,
-      type: "edit",
-      message: "포스트를 수정하시겠습니까?",
-    });
-  };
-
-  const handleEditConfirm = () => {
-    setDialogState({ isOpen: false, type: null, message: "" });
     router.push(`/posts/write?mode=edit&id=${postId}`);
   };
 
@@ -66,7 +58,8 @@ export default function Post({ postId }: PostProps) {
     setDialogState({
       isOpen: true,
       type: "delete",
-      message: "포스트를 삭제하시겠습니까?",
+      title: "포스트 삭제",
+      message: "정말로 포스트를 삭제하시겠습니까?",
     });
   };
 
@@ -86,12 +79,12 @@ export default function Post({ postId }: PostProps) {
       alert("포스트 삭제에 실패했습니다.");
     } finally {
       setIsDeleting(false);
-      setDialogState({ isOpen: false, type: null, message: "" });
+      setDialogState({ isOpen: false, type: null, title: "", message: "" });
     }
   };
 
   const handleDialogClose = () => {
-    setDialogState({ isOpen: false, type: null, message: "" });
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
   };
 
   if (isLoading) {
@@ -186,10 +179,12 @@ export default function Post({ postId }: PostProps) {
       <Dialog
         isOpen={dialogState.isOpen}
         onClick={
-          dialogState.type === "edit" ? handleEditConfirm : handleDeleteConfirm
+          dialogState.type === "delete"
+            ? handleDeleteConfirm
+            : handleDialogClose
         }
         onClose={handleDialogClose}
-        title={dialogState.type === "edit" ? "포스트 수정" : "포스트 삭제"}
+        title={dialogState.title}
       >
         <p className="text-sm text-gray-500">{dialogState.message}</p>
       </Dialog>
