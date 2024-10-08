@@ -9,32 +9,42 @@ import Dialog from "./Dialog";
 export default function Header() {
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
-    type: "login" | "logout" | null;
-  }>({ isOpen: false, type: null });
+    type: "logout" | null;
+    title: string;
+    message: string;
+  }>({ isOpen: false, type: null, title: "", message: "" });
 
   const router = useRouter();
   const { accessToken, logout } = useAuth();
 
   const handleLogin = () => {
-    setDialogState({ isOpen: true, type: "login" });
-  };
-
-  const handleLoginConfirm = () => {
-    setDialogState({ isOpen: false, type: null });
     router.push("/login");
   };
 
   const handleLogout = () => {
-    setDialogState({ isOpen: true, type: "logout" });
+    setDialogState({
+      isOpen: true,
+      type: "logout",
+      title: "로그아웃",
+      message: "로그아웃 하시겠습니까?",
+    });
   };
 
   const handleLogoutConfirm = () => {
-    setDialogState({ isOpen: false, type: null });
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
     logout();
   };
 
+  const handleSignup = () => {
+    router.push("/signup");
+  };
+
+  const handleProfile = () => {
+    router.push("/profile");
+  };
+
   const handleDialogClose = () => {
-    setDialogState({ isOpen: false, type: null });
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
   };
 
   return (
@@ -45,30 +55,27 @@ export default function Header() {
         </Link>
         {accessToken ? (
           <div className="flex flex-row gap-10">
-            <Link href="/profile" className="flex items-center">
-              프로필
-            </Link>
+            <button onClick={handleProfile}>프로필</button>
             <button onClick={handleLogout}>로그아웃</button>
           </div>
         ) : (
-          <button onClick={handleLogin}>로그인</button>
+          <div className="flex flex-row gap-10">
+            <button onClick={handleSignup}>회원가입</button>
+            <button onClick={handleLogin}>로그인</button>
+          </div>
         )}
       </header>
       <Dialog
         isOpen={dialogState.isOpen}
         onClick={
-          dialogState.type === "login"
-            ? handleLoginConfirm
-            : handleLogoutConfirm
+          dialogState.type === "logout"
+            ? handleLogoutConfirm
+            : handleDialogClose
         }
         onClose={handleDialogClose}
-        title={dialogState.type === "login" ? "로그인" : "로그아웃"}
+        title={dialogState.title}
       >
-        <p>
-          {dialogState.type === "login"
-            ? "로그인 하시겠습니까?"
-            : "로그아웃 하시겠습니까?"}
-        </p>
+        <p className="text-sm text-gray-500">{dialogState.message}</p>
       </Dialog>
     </div>
   );

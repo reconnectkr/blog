@@ -23,8 +23,10 @@ export default function Post({ postId }: PostProps) {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
-    type: "edit" | "delete" | null;
-  }>({ isOpen: false, type: null });
+    type: "delete" | null;
+    title: string;
+    message: string;
+  }>({ isOpen: false, type: null, title: "", message: "" });
 
   const router = useRouter();
   const { accessToken, executeAuthenticatedAction } = useAuth();
@@ -49,16 +51,16 @@ export default function Post({ postId }: PostProps) {
   }, [postId]);
 
   const handleEdit = () => {
-    setDialogState({ isOpen: true, type: "edit" });
-  };
-
-  const handleEditConfirm = () => {
-    setDialogState({ isOpen: false, type: null });
     router.push(`/posts/write?mode=edit&id=${postId}`);
   };
 
   const handleDelete = () => {
-    setDialogState({ isOpen: true, type: "delete" });
+    setDialogState({
+      isOpen: true,
+      type: "delete",
+      title: "포스트 삭제",
+      message: "정말로 포스트를 삭제하시겠습니까?",
+    });
   };
 
   const handleDeleteConfirm = async () => {
@@ -77,12 +79,12 @@ export default function Post({ postId }: PostProps) {
       alert("포스트 삭제에 실패했습니다.");
     } finally {
       setIsDeleting(false);
-      setDialogState({ isOpen: false, type: null });
+      setDialogState({ isOpen: false, type: null, title: "", message: "" });
     }
   };
 
   const handleDialogClose = () => {
-    setDialogState({ isOpen: false, type: null });
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
   };
 
   if (isLoading) {
@@ -103,7 +105,7 @@ export default function Post({ postId }: PostProps) {
         {post.categories.map((category, index) => (
           <span key={category.id}>
             <Link
-              href={`/posts/${category.id}`}
+              href={`/posts/category/${category.id}`}
               className="text-blue-600 hover:underline"
             >
               {category.name}
@@ -137,7 +139,7 @@ export default function Post({ postId }: PostProps) {
               {post.categories.map((category, index) => (
                 <span key={category.id}>
                   <Link
-                    href={`/posts/${category.id}`}
+                    href={`/posts/category/${category.id}`}
                     className="hover:underline"
                   >
                     {category.name}
@@ -165,7 +167,7 @@ export default function Post({ postId }: PostProps) {
         {post.categories.map((category) => (
           <div key={category.id} className="mb-2">
             <Link
-              href={`/posts/${category.id}`}
+              href={`/posts/category/${category.id}`}
               className="text-blue-600 hover:underline"
             >
               ← {category.name} 카테고리의 다른 글 보기
@@ -177,16 +179,14 @@ export default function Post({ postId }: PostProps) {
       <Dialog
         isOpen={dialogState.isOpen}
         onClick={
-          dialogState.type === "edit" ? handleEditConfirm : handleDeleteConfirm
+          dialogState.type === "delete"
+            ? handleDeleteConfirm
+            : handleDialogClose
         }
         onClose={handleDialogClose}
-        title={dialogState.type === "edit" ? "포스트 수정" : "포스트 삭제"}
+        title={dialogState.title}
       >
-        <p>
-          {dialogState.type === "edit"
-            ? "포스트를 수정하시겠습니까?"
-            : "포스트를 삭제하시겠습니까?"}
-        </p>
+        <p className="text-sm text-gray-500">{dialogState.message}</p>
       </Dialog>
     </div>
   );

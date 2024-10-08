@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Dialog from "@/app/components/Dialog";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -12,6 +12,12 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    type: "correct" | "error" | null;
+    title: string;
+    message: string;
+  }>({ isOpen: false, type: null, title: "", message: "" });
 
   const router = useRouter();
 
@@ -35,47 +41,74 @@ export default function SignupPage() {
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = () => {
+    router.push("/login");
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-
-    if (!validateForm()) return;
-
-    setLoading(true);
-
-    try {
-      const response = await fetch("http://localhost:4000/api/v1/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, username, name, password }),
+    if (!validateForm()) {
+      setDialogState({
+        isOpen: true,
+        type: "error",
+        title: "회원가입 오류",
+        message:
+          "회원가입 형식이 올바르지 않습니다. 상단의 오류 메세지를 확인해주세요.",
       });
+    } else {
+      setLoading(true);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "회원가입 중 오류가 발생했습니다."
+      try {
+        const response = await fetch("http://localhost:4000/api/v1/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, username, name, password }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message);
+        }
+
+        const data = await response.json();
+        console.log(data.message);
+
+        setDialogState({
+          isOpen: true,
+          type: "correct",
+          title: "회원가입 성공",
+          message: `${username}님 회원가입이 완료되었습니다. 로그인 후 이용 부탁드립니다.`,
+        });
+      } catch (error) {
+        console.error("회원가입 에러: ", error);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "알 수 없는 오류가 발생했습니다."
         );
+
+        setDialogState({
+          isOpen: true,
+          type: "error",
+          title: "회원가입 실패",
+          message:
+            "기존에 존재하는 회원입니다. 다른 정보를 이용해주시길 바랍니다.",
+        });
+      } finally {
+        setLoading(false);
       }
-
-      const data = await response.json();
-      console.log(data.message);
-
-      router.push("/login");
-      alert(
-        `${username}님 회원가입이 완료되었습니다. 로그인 후 이용 부탁드립니다.`
-      );
-    } catch (error) {
-      console.error("회원가입 에러: ", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "알 수 없는 오류가 발생했습니다."
-      );
-    } finally {
-      setLoading(false);
     }
+  };
+
+  const handleSignupConfirm = () => {
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
+    router.push("/login");
+  };
+
+  const handleDialogClose = () => {
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
   };
 
   return (
@@ -96,7 +129,7 @@ export default function SignupPage() {
               {error}
             </div>
           )}
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSignup}>
             <div>
               <label
                 htmlFor="name"
@@ -205,10 +238,10 @@ export default function SignupPage() {
             <div>
               <button
                 type="submit"
-                disabled={loading}
                 className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
+                disabled={loading}
               >
                 {loading ? "처리 중..." : "회원가입"}
               </button>
@@ -227,17 +260,29 @@ export default function SignupPage() {
 
             <div className="mt-6">
               <div>
-                <Link
-                  href="/login"
+                <button
                   className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  onClick={handleLogin}
                 >
                   이미 계정이 있으신가요? 로그인
-                </Link>
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <Dialog
+        isOpen={dialogState.isOpen}
+        onClick={
+          dialogState.type === "correct"
+            ? handleSignupConfirm
+            : handleDialogClose
+        }
+        onClose={handleDialogClose}
+        title={dialogState.title}
+      >
+        <p className="text-sm text-gray-500">{dialogState.message}</p>
+      </Dialog>
     </div>
   );
 }

@@ -12,8 +12,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-  const [dialogMessage, setDialogMessage] = useState<string>("");
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    type: "correct" | "error" | null;
+    title: string;
+    message: string;
+  }>({ isOpen: false, type: null, title: "", message: "" });
 
   const router = useRouter();
   const { login } = useAuth();
@@ -30,42 +34,61 @@ export default function LoginPage() {
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!validateForm()) return;
-
-    setLoading(true);
-
-    try {
-      const newAccessToken = await login(email, password);
-
-      const userData = await getUserInfo(newAccessToken, {
-        headers: {
-          Authorization: `Bearer ${newAccessToken}`,
-        },
+    if (!validateForm()) {
+      setDialogState({
+        isOpen: true,
+        type: "error",
+        title: "오류",
+        message: "로그인 정보가 올바르지 않습니다.",
       });
-      const message = userData?.username
-        ? `${userData.username}님 환영합니다!`
-        : `${email}님 환영합니다!`;
-      setDialogMessage(message);
-      setIsDialogOpen(true);
-    } catch (error) {
-      console.error("로그인 에러: ", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "알 수 없는 오류가 발생했습니다."
-      );
-    } finally {
-      setLoading(false);
+    } else {
+      setLoading(true);
+
+      try {
+        const newAccessToken = await login(email, password);
+
+        const userData = await getUserInfo(newAccessToken, {
+          headers: {
+            Authorization: `Bearer ${newAccessToken}`,
+          },
+        });
+        const message = userData?.username
+          ? `${userData.username}님 환영합니다!`
+          : `${email}님 환영합니다!`;
+        setDialogState({
+          isOpen: true,
+          type: "correct",
+          title: "로그인 성공",
+          message: message,
+        });
+      } catch (error) {
+        console.error("로그인 에러: ", error);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "알 수 없는 오류가 발생했습니다."
+        );
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
+  const handleSignup = () => {
+    router.push("/signup");
+  };
+
+  const handleLoginCorrectConfirm = () => {
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
     router.push("/");
+  };
+
+  const handleDialogClose = () => {
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
   };
 
   return (
@@ -86,7 +109,7 @@ export default function LoginPage() {
               {error}
             </div>
           )}
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleLogin}>
             <div>
               <label
                 htmlFor="email"
@@ -180,12 +203,12 @@ export default function LoginPage() {
 
             <div className="mt-6">
               <div>
-                <Link
-                  href="/signup"
+                <button
+                  onClick={handleSignup}
                   className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                 >
                   계정 만들기
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -193,12 +216,20 @@ export default function LoginPage() {
       </div>
 
       <Dialog
-        isOpen={isDialogOpen}
-        onClick={handleCloseDialog}
-        onClose={handleCloseDialog}
-        title="로그인 성공"
+        isOpen={dialogState.isOpen}
+        onClick={
+          dialogState.type === "correct"
+            ? handleLoginCorrectConfirm
+            : handleDialogClose
+        }
+        onClose={
+          dialogState.type === "correct"
+            ? handleLoginCorrectConfirm
+            : handleDialogClose
+        }
+        title={dialogState.title}
       >
-        <p className="text-sm text-gray-500">{dialogMessage}</p>
+        <p className="text-sm text-gray-500">{dialogState.message}</p>
       </Dialog>
     </div>
   );
