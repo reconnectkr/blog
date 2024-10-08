@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/app/components/Card";
+import Dialog from "@/app/components/Dialog";
 import { Input } from "@/app/components/Input";
 import { useAuth } from "@/app/context/AuthContext";
 import { IUser } from "@/app/interfaces";
@@ -21,6 +22,10 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedInfo, setEditedInfo] = useState<IUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    type: "edit" | "save" | null;
+  }>({ isOpen: false, type: null });
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -51,10 +56,17 @@ export default function ProfilePage() {
   }, [accessToken, executeAuthenticatedAction]);
 
   const handleEditToggle = () => {
-    setIsEditing(!isEditing);
     if (!isEditing) {
+      setDialogState({ isOpen: true, type: "edit" });
+    } else {
+      setIsEditing(false);
       setEditedInfo(userInfo);
     }
+  };
+
+  const handleEditConfirm = () => {
+    setIsEditing(true);
+    setDialogState({ isOpen: false, type: null });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,6 +79,10 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setDialogState({ isOpen: true, type: "save" });
+  };
+
+  const handleSaveConfirm = async () => {
     if (!editedInfo || !accessToken) return;
 
     try {
@@ -79,10 +95,15 @@ export default function ProfilePage() {
       );
       setUserInfo(editedInfo);
       setIsEditing(false);
+      setDialogState({ isOpen: false, type: null });
     } catch (error) {
       console.error("Failed to update user information:", error);
       setError("사용자 정보를 업데이트하는 데 실패했습니다.");
     }
+  };
+
+  const handleDialogClose = () => {
+    setDialogState({ isOpen: false, type: null });
   };
 
   if (isLoading) return <div>로딩 중...</div>;
@@ -172,6 +193,21 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog
+        isOpen={dialogState.isOpen}
+        onClick={
+          dialogState.type === "edit" ? handleEditConfirm : handleSaveConfirm
+        }
+        onClose={handleDialogClose}
+        title={dialogState.type === "edit" ? "프로필 수정" : "프로필 저장"}
+      >
+        <p>
+          {dialogState.type === "edit"
+            ? "프로필을 수정하시겠습니까?"
+            : "변경사항을 저장하시겠습니까?"}
+        </p>
+      </Dialog>
     </div>
   );
 }
