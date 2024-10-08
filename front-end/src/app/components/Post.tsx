@@ -11,6 +11,7 @@ import remarkGfm from "remark-gfm";
 import { Button } from "../components/Button";
 import { useAuth } from "../context/AuthContext";
 import { IPost } from "../interfaces";
+import Dialog from "./Dialog";
 
 interface PostProps {
   postId: string;
@@ -20,6 +21,11 @@ export default function Post({ postId }: PostProps) {
   const [post, setPost] = useState<IPost | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    type: "edit" | "delete" | null;
+  }>({ isOpen: false, type: null });
+
   const router = useRouter();
   const { accessToken, executeAuthenticatedAction } = useAuth();
 
@@ -43,38 +49,40 @@ export default function Post({ postId }: PostProps) {
   }, [postId]);
 
   const handleEdit = () => {
+    setDialogState({ isOpen: true, type: "edit" });
+  };
+
+  const handleEditConfirm = () => {
+    setDialogState({ isOpen: false, type: null });
     router.push(`/posts/write?mode=edit&id=${postId}`);
   };
 
-  const handleDelete = async () => {
-    if (
-      window.confirm(
-        "이 글을 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-      )
-    ) {
-      setIsDeleting(true);
-      try {
-        const response = await executeAuthenticatedAction(() =>
-          deletePost(postId, {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          })
-        );
+  const handleDelete = () => {
+    setDialogState({ isOpen: true, type: "delete" });
+  };
 
-        console.log("Delete response: ", response);
-
-        const checkResponse = await getPost(postId);
-        console.log("Check post after deletion: ", checkResponse);
-
-        router.push("/posts");
-      } catch (error) {
-        console.error("Failed to delete post:", error);
-        alert("포스트 삭제에 실패했습니다.");
-      } finally {
-        setIsDeleting(false);
-      }
+  const handleDeleteConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      await executeAuthenticatedAction(() =>
+        deletePost(postId, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+      );
+      router.push("/posts");
+    } catch (error) {
+      console.error("Failed to delete post:", error);
+      alert("포스트 삭제에 실패했습니다.");
+    } finally {
+      setIsDeleting(false);
+      setDialogState({ isOpen: false, type: null });
     }
+  };
+
+  const handleDialogClose = () => {
+    setDialogState({ isOpen: false, type: null });
   };
 
   if (isLoading) {
@@ -165,6 +173,21 @@ export default function Post({ postId }: PostProps) {
           </div>
         ))}
       </div>
+
+      <Dialog
+        isOpen={dialogState.isOpen}
+        onClick={
+          dialogState.type === "edit" ? handleEditConfirm : handleDeleteConfirm
+        }
+        onClose={handleDialogClose}
+        title={dialogState.type === "edit" ? "포스트 수정" : "포스트 삭제"}
+      >
+        <p>
+          {dialogState.type === "edit"
+            ? "포스트를 수정하시겠습니까?"
+            : "포스트를 삭제하시겠습니까?"}
+        </p>
+      </Dialog>
     </div>
   );
 }
