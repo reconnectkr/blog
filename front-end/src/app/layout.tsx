@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import SideNavigationBar from "./components/SideNavigationBar";
-import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Blog",
