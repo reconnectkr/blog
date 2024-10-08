@@ -86,9 +86,9 @@ export default function Header() {
       >
         <p>
           {dialogState.type === "login"
-            ? "로그인 하시겠습니까?"
+            ? "로그인하시겠습니까?"
             : dialogState.type === "logout"
-            ? "로그아웃 하시겠습니까?"
+            ? "로그아웃하시겠습니까?"
             : "회원가입을 하시겠습니까?"}
         </p>
       </Dialog>

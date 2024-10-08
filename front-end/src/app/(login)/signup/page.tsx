@@ -270,7 +270,7 @@ export default function SignupPage() {
       >
         <p>
           {dialogState.type === "login"
-            ? "로그인 하시겠습니까?"
+            ? "로그인하시겠습니까?"
             : "입력한 정보로 가입을 하시겠습니까?"}
         </p>
       </Dialog>
