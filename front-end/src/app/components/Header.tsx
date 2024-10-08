@@ -9,23 +9,15 @@ import Dialog from "./Dialog";
 export default function Header() {
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
-    type: "login" | "logout" | "signup" | "profile" | null;
+    type: "logout" | null;
+    title: string;
     message: string;
-  }>({ isOpen: false, type: null, message: "" });
+  }>({ isOpen: false, type: null, title: "", message: "" });
 
   const router = useRouter();
   const { accessToken, logout } = useAuth();
 
   const handleLogin = () => {
-    setDialogState({
-      isOpen: true,
-      type: "login",
-      message: "로그인 페이지로 이동하시겠습니까?",
-    });
-  };
-
-  const handleLoginConfirm = () => {
-    setDialogState({ isOpen: false, type: null, message: "" });
     router.push("/login");
   };
 
@@ -33,43 +25,26 @@ export default function Header() {
     setDialogState({
       isOpen: true,
       type: "logout",
+      title: "로그아웃",
       message: "로그아웃 하시겠습니까?",
     });
   };
 
   const handleLogoutConfirm = () => {
-    setDialogState({ isOpen: false, type: null, message: "" });
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
     logout();
   };
 
   const handleSignup = () => {
-    setDialogState({
-      isOpen: true,
-      type: "signup",
-      message: "회원가입 페이지로 이동하시겠습니까?",
-    });
-  };
-
-  const handleSignupConfirm = () => {
-    setDialogState({ isOpen: false, type: null, message: "" });
     router.push("/signup");
   };
 
   const handleProfile = () => {
-    setDialogState({
-      isOpen: true,
-      type: "profile",
-      message: "프로필 페이지로 이동하시겠습니까?",
-    });
-  };
-
-  const handleProfileConfirm = () => {
-    setDialogState({ isOpen: false, type: null, message: "" });
     router.push("/profile");
   };
 
   const handleDialogClose = () => {
-    setDialogState({ isOpen: false, type: null, message: "" });
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
   };
 
   return (
@@ -93,24 +68,12 @@ export default function Header() {
       <Dialog
         isOpen={dialogState.isOpen}
         onClick={
-          dialogState.type === "login"
-            ? handleLoginConfirm
-            : dialogState.type === "logout"
+          dialogState.type === "logout"
             ? handleLogoutConfirm
-            : dialogState.type === "signup"
-            ? handleSignupConfirm
-            : handleProfileConfirm
+            : handleDialogClose
         }
         onClose={handleDialogClose}
-        title={
-          dialogState.type === "login"
-            ? "로그인"
-            : dialogState.type === "logout"
-            ? "로그아웃"
-            : dialogState.type === "signup"
-            ? "회원가입"
-            : "프로필"
-        }
+        title={dialogState.title}
       >
         <p className="text-sm text-gray-500">{dialogState.message}</p>
       </Dialog>
