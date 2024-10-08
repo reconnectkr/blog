@@ -194,6 +194,7 @@ export default function LoginPage() {
 
       <Dialog
         isOpen={isDialogOpen}
+        onClick={handleCloseDialog}
         onClose={handleCloseDialog}
         title="로그인 성공"
       >
