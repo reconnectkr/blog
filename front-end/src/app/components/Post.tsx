@@ -112,7 +112,7 @@ export default function Post({ postId }: PostProps) {
         {post.categories.map((category, index) => (
           <span key={category.id}>
             <Link
-              href={`/posts/${category.id}`}
+              href={`/posts/category/${category.id}`}
               className="text-blue-600 hover:underline"
             >
               {category.name}
@@ -174,7 +174,7 @@ export default function Post({ postId }: PostProps) {
         {post.categories.map((category) => (
           <div key={category.id} className="mb-2">
             <Link
-              href={`/posts/${category.id}`}
+              href={`/posts/category/${category.id}`}
               className="text-blue-600 hover:underline"
             >
               ← {category.name} 카테고리의 다른 글 보기
