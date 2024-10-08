@@ -12,8 +12,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-  const [dialogMessage, setDialogMessage] = useState<string>("");
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    type: "login" | "signup" | null;
+    message: string;
+  }>({ isOpen: false, type: null, message: "" });
 
   const router = useRouter();
   const { login } = useAuth();
@@ -30,12 +33,21 @@ export default function LoginPage() {
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     if (!validateForm()) return;
 
+    setDialogState({
+      isOpen: true,
+      type: "login",
+      message: "로그인하시겠습니까?",
+    });
+  };
+
+  const handleLoginConfirm = async () => {
+    setDialogState({ isOpen: false, type: null, message: "" });
     setLoading(true);
 
     try {
@@ -49,8 +61,11 @@ export default function LoginPage() {
       const message = userData?.username
         ? `${userData.username}님 환영합니다!`
         : `${email}님 환영합니다!`;
-      setDialogMessage(message);
-      setIsDialogOpen(true);
+      setDialogState({
+        isOpen: true,
+        type: "login",
+        message: message,
+      });
     } catch (error) {
       console.error("로그인 에러: ", error);
       setError(
@@ -63,9 +78,28 @@ export default function LoginPage() {
     }
   };
 
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    router.push("/");
+  const handleSignup = () => {
+    setDialogState({
+      isOpen: true,
+      type: "signup",
+      message: "회원가입 페이지로 이동하시겠습니까?",
+    });
+  };
+
+  const handleSignupConfirm = () => {
+    setDialogState({ isOpen: false, type: null, message: "" });
+    router.push("/signup");
+  };
+
+  const handleDialogClose = () => {
+    if (
+      dialogState.type === "login" &&
+      dialogState.message.includes("환영합니다")
+    ) {
+      router.push("/");
+    } else {
+      setDialogState({ isOpen: false, type: null, message: "" });
+    }
   };
 
   return (
@@ -86,7 +120,7 @@ export default function LoginPage() {
               {error}
             </div>
           )}
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleLogin}>
             <div>
               <label
                 htmlFor="email"
@@ -180,12 +214,12 @@ export default function LoginPage() {
 
             <div className="mt-6">
               <div>
-                <Link
-                  href="/signup"
+                <button
+                  onClick={handleSignup}
                   className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                 >
                   계정 만들기
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -193,12 +227,16 @@ export default function LoginPage() {
       </div>
 
       <Dialog
-        isOpen={isDialogOpen}
-        onClick={handleCloseDialog}
-        onClose={handleCloseDialog}
-        title="로그인 성공"
+        isOpen={dialogState.isOpen}
+        onClick={
+          dialogState.type === "login"
+            ? handleLoginConfirm
+            : handleSignupConfirm
+        }
+        onClose={handleDialogClose}
+        title={dialogState.type === "login" ? "로그인" : "회원가입"}
       >
-        <p className="text-sm text-gray-500">{dialogMessage}</p>
+        <p className="text-sm text-gray-500">{dialogState.message}</p>
       </Dialog>
     </div>
   );
