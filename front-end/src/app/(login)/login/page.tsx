@@ -14,9 +14,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string>("");
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
-    type: "login" | "signup" | "error" | "correct" | null;
+    type: "correct" | "error" | null;
+    title: string;
     message: string;
-  }>({ isOpen: false, type: null, message: "" });
+  }>({ isOpen: false, type: null, title: "", message: "" });
 
   const router = useRouter();
   const { login } = useAuth();
@@ -41,58 +42,43 @@ export default function LoginPage() {
       setDialogState({
         isOpen: true,
         type: "error",
+        title: "오류",
         message: "로그인 정보가 올바르지 않습니다.",
       });
     } else {
-      setDialogState({
-        isOpen: true,
-        type: "login",
-        message: "로그인 하시겠습니까?",
-      });
-    }
-  };
+      setLoading(true);
 
-  const handleLoginConfirm = async () => {
-    setLoading(true);
+      try {
+        const newAccessToken = await login(email, password);
 
-    try {
-      const newAccessToken = await login(email, password);
-
-      const userData = await getUserInfo(newAccessToken, {
-        headers: {
-          Authorization: `Bearer ${newAccessToken}`,
-        },
-      });
-      const message = userData?.username
-        ? `${userData.username}님 환영합니다!`
-        : `${email}님 환영합니다!`;
-      setDialogState({
-        isOpen: true,
-        type: "correct",
-        message: message,
-      });
-    } catch (error) {
-      console.error("로그인 에러: ", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "알 수 없는 오류가 발생했습니다."
-      );
-    } finally {
-      setLoading(false);
+        const userData = await getUserInfo(newAccessToken, {
+          headers: {
+            Authorization: `Bearer ${newAccessToken}`,
+          },
+        });
+        const message = userData?.username
+          ? `${userData.username}님 환영합니다!`
+          : `${email}님 환영합니다!`;
+        setDialogState({
+          isOpen: true,
+          type: "correct",
+          title: "로그인 성공",
+          message: message,
+        });
+      } catch (error) {
+        console.error("로그인 에러: ", error);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "알 수 없는 오류가 발생했습니다."
+        );
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const handleSignup = () => {
-    setDialogState({
-      isOpen: true,
-      type: "signup",
-      message: "회원가입 페이지로 이동하시겠습니까?",
-    });
-  };
-
-  const handleSignupConfirm = () => {
-    setDialogState({ isOpen: false, type: null, message: "" });
     router.push("/signup");
   };
 
@@ -101,7 +87,7 @@ export default function LoginPage() {
   };
 
   const handleDialogClose = () => {
-    setDialogState({ isOpen: false, type: null, message: "" });
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
   };
 
   return (
@@ -231,11 +217,7 @@ export default function LoginPage() {
       <Dialog
         isOpen={dialogState.isOpen}
         onClick={
-          dialogState.type === "login"
-            ? handleLoginConfirm
-            : dialogState.type === "signup"
-            ? handleSignupConfirm
-            : dialogState.type === "correct"
+          dialogState.type === "correct"
             ? handleLoginCorrectConfirm
             : handleDialogClose
         }
@@ -244,15 +226,7 @@ export default function LoginPage() {
             ? handleLoginCorrectConfirm
             : handleDialogClose
         }
-        title={
-          dialogState.type === "login"
-            ? "로그인"
-            : dialogState.type === "signup"
-            ? "회원가입"
-            : dialogState.type === "correct"
-            ? "로그인 성공!"
-            : "오류"
-        }
+        title={dialogState.title}
       >
         <p className="text-sm text-gray-500">{dialogState.message}</p>
       </Dialog>
