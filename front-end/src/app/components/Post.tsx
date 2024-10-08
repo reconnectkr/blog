@@ -146,7 +146,7 @@ export default function Post({ postId }: PostProps) {
               {post.categories.map((category, index) => (
                 <span key={category.id}>
                   <Link
-                    href={`/posts/${category.id}`}
+                    href={`/posts/category/${category.id}`}
                     className="hover:underline"
                   >
                     {category.name}
