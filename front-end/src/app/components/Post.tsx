@@ -24,7 +24,8 @@ export default function Post({ postId }: PostProps) {
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
     type: "edit" | "delete" | null;
-  }>({ isOpen: false, type: null });
+    message: string;
+  }>({ isOpen: false, type: null, message: "" });
 
   const router = useRouter();
   const { accessToken, executeAuthenticatedAction } = useAuth();
@@ -49,16 +50,24 @@ export default function Post({ postId }: PostProps) {
   }, [postId]);
 
   const handleEdit = () => {
-    setDialogState({ isOpen: true, type: "edit" });
+    setDialogState({
+      isOpen: true,
+      type: "edit",
+      message: "포스트를 수정하시겠습니까?",
+    });
   };
 
   const handleEditConfirm = () => {
-    setDialogState({ isOpen: false, type: null });
+    setDialogState({ isOpen: false, type: null, message: "" });
     router.push(`/posts/write?mode=edit&id=${postId}`);
   };
 
   const handleDelete = () => {
-    setDialogState({ isOpen: true, type: "delete" });
+    setDialogState({
+      isOpen: true,
+      type: "delete",
+      message: "포스트를 삭제하시겠습니까?",
+    });
   };
 
   const handleDeleteConfirm = async () => {
@@ -77,12 +86,12 @@ export default function Post({ postId }: PostProps) {
       alert("포스트 삭제에 실패했습니다.");
     } finally {
       setIsDeleting(false);
-      setDialogState({ isOpen: false, type: null });
+      setDialogState({ isOpen: false, type: null, message: "" });
     }
   };
 
   const handleDialogClose = () => {
-    setDialogState({ isOpen: false, type: null });
+    setDialogState({ isOpen: false, type: null, message: "" });
   };
 
   if (isLoading) {
@@ -182,11 +191,7 @@ export default function Post({ postId }: PostProps) {
         onClose={handleDialogClose}
         title={dialogState.type === "edit" ? "포스트 수정" : "포스트 삭제"}
       >
-        <p>
-          {dialogState.type === "edit"
-            ? "포스트를 수정하시겠습니까?"
-            : "포스트를 삭제하시겠습니까?"}
-        </p>
+        <p className="text-sm text-gray-500">{dialogState.message}</p>
       </Dialog>
     </div>
   );

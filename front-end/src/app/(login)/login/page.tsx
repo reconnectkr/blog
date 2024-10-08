@@ -14,7 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string>("");
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
-    type: "login" | "signup" | null;
+    type: "login" | "signup" | "error" | "correct" | null;
     message: string;
   }>({ isOpen: false, type: null, message: "" });
 
@@ -37,17 +37,22 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    if (!validateForm()) return;
-
-    setDialogState({
-      isOpen: true,
-      type: "login",
-      message: "로그인하시겠습니까?",
-    });
+    if (!validateForm()) {
+      setDialogState({
+        isOpen: true,
+        type: "error",
+        message: "로그인 정보가 올바르지 않습니다.",
+      });
+    } else {
+      setDialogState({
+        isOpen: true,
+        type: "login",
+        message: "로그인 하시겠습니까?",
+      });
+    }
   };
 
   const handleLoginConfirm = async () => {
-    setDialogState({ isOpen: false, type: null, message: "" });
     setLoading(true);
 
     try {
@@ -63,7 +68,7 @@ export default function LoginPage() {
         : `${email}님 환영합니다!`;
       setDialogState({
         isOpen: true,
-        type: "login",
+        type: "correct",
         message: message,
       });
     } catch (error) {
@@ -91,15 +96,12 @@ export default function LoginPage() {
     router.push("/signup");
   };
 
+  const handleLoginCorrectConfirm = () => {
+    router.push("/");
+  };
+
   const handleDialogClose = () => {
-    if (
-      dialogState.type === "login" &&
-      dialogState.message.includes("환영합니다")
-    ) {
-      router.push("/");
-    } else {
-      setDialogState({ isOpen: false, type: null, message: "" });
-    }
+    setDialogState({ isOpen: false, type: null, message: "" });
   };
 
   return (
@@ -231,10 +233,26 @@ export default function LoginPage() {
         onClick={
           dialogState.type === "login"
             ? handleLoginConfirm
-            : handleSignupConfirm
+            : dialogState.type === "signup"
+            ? handleSignupConfirm
+            : dialogState.type === "correct"
+            ? handleLoginCorrectConfirm
+            : handleDialogClose
         }
-        onClose={handleDialogClose}
-        title={dialogState.type === "login" ? "로그인" : "회원가입"}
+        onClose={
+          dialogState.type === "correct"
+            ? handleLoginCorrectConfirm
+            : handleDialogClose
+        }
+        title={
+          dialogState.type === "login"
+            ? "로그인"
+            : dialogState.type === "signup"
+            ? "회원가입"
+            : dialogState.type === "correct"
+            ? "로그인 성공!"
+            : "오류"
+        }
       >
         <p className="text-sm text-gray-500">{dialogState.message}</p>
       </Dialog>

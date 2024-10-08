@@ -15,7 +15,8 @@ export default function SignupPage() {
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
     type: "signup" | "login" | null;
-  }>({ isOpen: false, type: null });
+    message: string;
+  }>({ isOpen: false, type: null, message: "" });
 
   const router = useRouter();
 
@@ -40,23 +41,31 @@ export default function SignupPage() {
   };
 
   const handleLogin = () => {
-    setDialogState({ isOpen: true, type: "login" });
+    setDialogState({
+      isOpen: true,
+      type: "login",
+      message: "로그인하시겠습니까?",
+    });
   };
 
   const handleLoginConfirm = () => {
-    setDialogState({ isOpen: false, type: null });
+    setDialogState({ isOpen: false, type: null, message: "" });
     router.push("/login");
   };
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      setDialogState({ isOpen: true, type: "signup" });
+      setDialogState({
+        isOpen: true,
+        type: "signup",
+        message: "회원가입 페이지로 이동하시겠습니까?",
+      });
     }
   };
 
   const handleSignupConfirm = async () => {
-    setDialogState({ isOpen: false, type: null });
+    setDialogState({ isOpen: false, type: null, message: "" });
     setLoading(true);
 
     try {
@@ -95,7 +104,7 @@ export default function SignupPage() {
   };
 
   const handleDialogClose = () => {
-    setDialogState({ isOpen: false, type: null });
+    setDialogState({ isOpen: false, type: null, message: "" });
   };
 
   return (
@@ -268,11 +277,7 @@ export default function SignupPage() {
         onClose={handleDialogClose}
         title={dialogState.type === "login" ? "로그인" : "회원가입"}
       >
-        <p>
-          {dialogState.type === "login"
-            ? "로그인하시겠습니까?"
-            : "입력한 정보로 가입을 하시겠습니까?"}
-        </p>
+        <p className="text-sm text-gray-500">{dialogState.message}</p>
       </Dialog>
     </div>
   );

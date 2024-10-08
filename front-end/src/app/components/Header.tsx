@@ -9,41 +9,67 @@ import Dialog from "./Dialog";
 export default function Header() {
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
-    type: "login" | "logout" | "signup" | null;
-  }>({ isOpen: false, type: null });
+    type: "login" | "logout" | "signup" | "profile" | null;
+    message: string;
+  }>({ isOpen: false, type: null, message: "" });
 
   const router = useRouter();
   const { accessToken, logout } = useAuth();
 
   const handleLogin = () => {
-    setDialogState({ isOpen: true, type: "login" });
+    setDialogState({
+      isOpen: true,
+      type: "login",
+      message: "로그인 페이지로 이동하시겠습니까?",
+    });
   };
 
   const handleLoginConfirm = () => {
-    setDialogState({ isOpen: false, type: null });
+    setDialogState({ isOpen: false, type: null, message: "" });
     router.push("/login");
   };
 
   const handleLogout = () => {
-    setDialogState({ isOpen: true, type: "logout" });
+    setDialogState({
+      isOpen: true,
+      type: "logout",
+      message: "로그아웃 하시겠습니까?",
+    });
   };
 
   const handleLogoutConfirm = () => {
-    setDialogState({ isOpen: false, type: null });
+    setDialogState({ isOpen: false, type: null, message: "" });
     logout();
   };
 
   const handleSignup = () => {
-    setDialogState({ isOpen: true, type: "signup" });
+    setDialogState({
+      isOpen: true,
+      type: "signup",
+      message: "회원가입 페이지로 이동하시겠습니까?",
+    });
   };
 
   const handleSignupConfirm = () => {
-    setDialogState({ isOpen: false, type: null });
+    setDialogState({ isOpen: false, type: null, message: "" });
     router.push("/signup");
   };
 
+  const handleProfile = () => {
+    setDialogState({
+      isOpen: true,
+      type: "profile",
+      message: "프로필 페이지로 이동하시겠습니까?",
+    });
+  };
+
+  const handleProfileConfirm = () => {
+    setDialogState({ isOpen: false, type: null, message: "" });
+    router.push("/profile");
+  };
+
   const handleDialogClose = () => {
-    setDialogState({ isOpen: false, type: null });
+    setDialogState({ isOpen: false, type: null, message: "" });
   };
 
   return (
@@ -54,9 +80,7 @@ export default function Header() {
         </Link>
         {accessToken ? (
           <div className="flex flex-row gap-10">
-            <Link href="/profile" className="flex items-center">
-              프로필
-            </Link>
+            <button onClick={handleProfile}>프로필</button>
             <button onClick={handleLogout}>로그아웃</button>
           </div>
         ) : (
@@ -73,7 +97,9 @@ export default function Header() {
             ? handleLoginConfirm
             : dialogState.type === "logout"
             ? handleLogoutConfirm
-            : handleSignupConfirm
+            : dialogState.type === "signup"
+            ? handleSignupConfirm
+            : handleProfileConfirm
         }
         onClose={handleDialogClose}
         title={
@@ -81,16 +107,12 @@ export default function Header() {
             ? "로그인"
             : dialogState.type === "logout"
             ? "로그아웃"
-            : "회원가입"
+            : dialogState.type === "signup"
+            ? "회원가입"
+            : "프로필"
         }
       >
-        <p>
-          {dialogState.type === "login"
-            ? "로그인하시겠습니까?"
-            : dialogState.type === "logout"
-            ? "로그아웃하시겠습니까?"
-            : "회원가입 페이지로 이동하시겠습니까?"}
-        </p>
+        <p className="text-sm text-gray-500">{dialogState.message}</p>
       </Dialog>
     </div>
   );
