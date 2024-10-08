@@ -83,6 +83,7 @@ export default function LoginPage() {
   };
 
   const handleLoginCorrectConfirm = () => {
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
     router.push("/");
   };
 

@@ -14,9 +14,10 @@ export default function SignupPage() {
   const [error, setError] = useState<string>("");
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
-    type: "signup" | "login" | null;
+    type: "correct" | "error" | null;
+    title: string;
     message: string;
-  }>({ isOpen: false, type: null, message: "" });
+  }>({ isOpen: false, type: null, title: "", message: "" });
 
   const router = useRouter();
 
@@ -41,70 +42,73 @@ export default function SignupPage() {
   };
 
   const handleLogin = () => {
-    setDialogState({
-      isOpen: true,
-      type: "login",
-      message: "로그인하시겠습니까?",
-    });
-  };
-
-  const handleLoginConfirm = () => {
-    setDialogState({ isOpen: false, type: null, message: "" });
     router.push("/login");
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
+    if (!validateForm()) {
       setDialogState({
         isOpen: true,
-        type: "signup",
-        message: "회원가입 페이지로 이동하시겠습니까?",
+        type: "error",
+        title: "회원가입 오류",
+        message:
+          "회원가입 형식이 올바르지 않습니다. 상단의 오류 메세지를 확인해주세요.",
       });
+    } else {
+      setLoading(true);
+
+      try {
+        const response = await fetch("http://localhost:4000/api/v1/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, username, name, password }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message);
+        }
+
+        const data = await response.json();
+        console.log(data.message);
+
+        setDialogState({
+          isOpen: true,
+          type: "correct",
+          title: "회원가입 성공",
+          message: `${username}님 회원가입이 완료되었습니다. 로그인 후 이용 부탁드립니다.`,
+        });
+      } catch (error) {
+        console.error("회원가입 에러: ", error);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "알 수 없는 오류가 발생했습니다."
+        );
+
+        setDialogState({
+          isOpen: true,
+          type: "error",
+          title: "회원가입 실패",
+          message:
+            "기존에 존재하는 회원입니다. 다른 정보를 이용해주시길 바랍니다.",
+        });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
-  const handleSignupConfirm = async () => {
-    setDialogState({ isOpen: false, type: null, message: "" });
-    setLoading(true);
-
-    try {
-      const response = await fetch("http://localhost:4000/api/v1/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, username, name, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "회원가입 중 오류가 발생했습니다."
-        );
-      }
-
-      const data = await response.json();
-      console.log(data.message);
-
-      router.push("/login");
-      alert(
-        `${username}님 회원가입이 완료되었습니다. 로그인 후 이용 부탁드립니다.`
-      );
-    } catch (error) {
-      console.error("회원가입 에러: ", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "알 수 없는 오류가 발생했습니다."
-      );
-    } finally {
-      setLoading(false);
-    }
+  const handleSignupConfirm = () => {
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
+    router.push("/login");
   };
 
   const handleDialogClose = () => {
-    setDialogState({ isOpen: false, type: null, message: "" });
+    setDialogState({ isOpen: false, type: null, title: "", message: "" });
   };
 
   return (
@@ -270,12 +274,12 @@ export default function SignupPage() {
       <Dialog
         isOpen={dialogState.isOpen}
         onClick={
-          dialogState.type === "login"
-            ? handleLoginConfirm
-            : handleSignupConfirm
+          dialogState.type === "correct"
+            ? handleSignupConfirm
+            : handleDialogClose
         }
         onClose={handleDialogClose}
-        title={dialogState.type === "login" ? "로그인" : "회원가입"}
+        title={dialogState.title}
       >
         <p className="text-sm text-gray-500">{dialogState.message}</p>
       </Dialog>
