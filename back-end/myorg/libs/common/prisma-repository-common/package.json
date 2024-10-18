@@ -4,5 +4,8 @@
   "dependencies": {},
   "type": "commonjs",
   "main": "./index.cjs",
-  "private": true
+  "private": true,
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  }
 }

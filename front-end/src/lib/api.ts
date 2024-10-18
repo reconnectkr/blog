@@ -1,7 +1,6 @@
-import { ICategory, IPost, IUser } from "@/app/interfaces";
-import { jwtDecode } from "jwt-decode";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { ICategory, IPost, IUser } from '@/app/interfaces';
+import { API_URL } from '@/constants';
+import { jwtDecode } from 'jwt-decode';
 
 interface DecodedToken {
   userId: string;
@@ -18,16 +17,16 @@ export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
     ...options,
     headers: {
       ...options.headers,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
   });
 
   if (!response.ok) {
-    console.error("API error: ", await response.text());
+    console.error('API error: ', await response.text());
     throw new Error(`API error: ${response.status}`);
   }
 
-  if (response.status === 204) return "204";
+  if (response.status === 204) return '204';
 
   const text = await response.text();
   return text ? JSON.parse(text) : null;
@@ -35,7 +34,7 @@ export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
 
 // GET API 함수들
 export async function getAllPosts(): Promise<IPost[]> {
-  const response = await fetchAPI("/post?pageSize=200"); // 왜 여기 쿼리 스트링으로 페이지 사이즈를 넘겨줘야만 하는거지??
+  const response = await fetchAPI('/api/v1/post?pageSize=200'); // 왜 여기 쿼리 스트링으로 페이지 사이즈를 넘겨줘야만 하는거지??
   const posts = response.items;
 
   const sortedPosts = posts.sort(
@@ -47,12 +46,12 @@ export async function getAllPosts(): Promise<IPost[]> {
 }
 
 export async function getPost(id: string): Promise<IPost> {
-  const response = await fetchAPI(`/post/${id}`);
+  const response = await fetchAPI(`/api/v1/post/${id}`);
   return response;
 }
 
 export async function getMostRecentPost(): Promise<IPost | null> {
-  const response = await fetchAPI("/post?pageSize=200");
+  const response = await fetchAPI('/api/v1/post?pageSize=200');
   const posts = response.items;
 
   const sortedPosts = posts.sort(
@@ -64,7 +63,7 @@ export async function getMostRecentPost(): Promise<IPost | null> {
 }
 
 export async function getRecentPosts(count: number): Promise<IPost[]> {
-  const response = await fetchAPI("/post?pageSize=200");
+  const response = await fetchAPI('/api/v1/post?pageSize=200');
   const posts = response.items;
 
   const sortedPosts = posts.sort(
@@ -76,12 +75,12 @@ export async function getRecentPosts(count: number): Promise<IPost[]> {
 }
 
 export async function getAllCategories(): Promise<ICategory[]> {
-  const response = await fetchAPI("/category");
+  const response = await fetchAPI('/api/v1/category');
   return response.items;
 }
 
 export async function getPostsByCategory(categoryId: number): Promise<IPost[]> {
-  const postResponse = await fetchAPI("/post");
+  const postResponse = await fetchAPI('/api/v1/post');
   const posts: IPost[] = postResponse.items;
   const argumentId = Number(categoryId);
 
@@ -104,7 +103,7 @@ export async function getUserInfo(
   const decodedToken = jwtDecode<DecodedToken>(accessToken);
   const userId = decodedToken.userId;
 
-  const response = await fetchAPI(`/user/${userId}`, {
+  const response = await fetchAPI(`/api/v1/user/${userId}`, {
     ...options,
   });
 
@@ -116,8 +115,8 @@ export async function createPost(
   postData: PostData,
   options: RequestInit = {}
 ): Promise<IPost> {
-  const response = await fetchAPI("/post", {
-    method: "POST",
+  const response = await fetchAPI('/post', {
+    method: 'POST',
     body: JSON.stringify(postData),
     ...options,
   });
@@ -125,11 +124,11 @@ export async function createPost(
 }
 
 export async function createCategory(
-  categoryData: Omit<ICategory, "id">,
+  categoryData: Omit<ICategory, 'id'>,
   options: RequestInit = {}
 ): Promise<ICategory> {
-  const response = await fetchAPI("/category", {
-    method: "POST",
+  const response = await fetchAPI('/category', {
+    method: 'POST',
     body: JSON.stringify(categoryData),
     ...options,
   });
@@ -146,7 +145,7 @@ export const updateUserInfo = async (
   const userId = decodedToken.userId;
   const endpoint = `/user/${userId}`;
   const updatedOptions: RequestInit = {
-    method: "PATCH",
+    method: 'PATCH',
     body: JSON.stringify(updatedInfo),
     ...options,
   };
@@ -160,17 +159,17 @@ export const updatePost = async (
   options?: RequestInit
 ) => {
   const endpoint = `/post/${updatedPostId}`;
-  console.log("Updating post at endpoint:", endpoint);
-  console.log("Update data:", updatedPostData);
+  console.log('Updating post at endpoint:', endpoint);
+  console.log('Update data:', updatedPostData);
   const updatedOptions: RequestInit = {
-    method: "PATCH",
+    method: 'PATCH',
     body: JSON.stringify(updatedPostData),
     ...options,
   };
   try {
     return fetchAPI(endpoint, updatedOptions);
   } catch (error) {
-    console.error("Error updating post:", {
+    console.error('Error updating post:', {
       updatedPostId,
       endpoint,
       updatedPostData,
@@ -184,14 +183,14 @@ export const updatePost = async (
 export const deletePost = async (postId: string, options?: RequestInit) => {
   const endpoint = `/post/${postId}`;
   const deleteOptions: RequestInit = {
-    method: "DELETE",
+    method: 'DELETE',
     ...options,
   };
 
   try {
     return fetchAPI(endpoint, deleteOptions);
   } catch (error) {
-    console.error("Error deleting post:", { postId, endpoint, error });
+    console.error('Error deleting post:', { postId, endpoint, error });
     throw error;
   }
 };

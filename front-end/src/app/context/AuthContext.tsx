@@ -1,15 +1,16 @@
-"use client";
+'use client';
 
-import { getUserInfo } from "@/lib/api";
-import { useRouter } from "next/navigation";
+import { API_URL } from '@/constants';
+import { getUserInfo } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 import {
   ReactNode,
   createContext,
   useContext,
   useEffect,
   useState,
-} from "react";
-import { IUser } from "../interfaces";
+} from 'react';
+import { IUser } from '../interfaces';
 
 interface AuthContextType {
   accessToken: string | null;
@@ -33,8 +34,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const storedAccessToken = localStorage.getItem("accessToken");
-    const storedRefreshToken = localStorage.getItem("refreshToken");
+    const storedAccessToken = localStorage.getItem('accessToken');
+    const storedRefreshToken = localStorage.getItem('refreshToken');
     if (storedAccessToken && storedRefreshToken) {
       setAccessToken(storedAccessToken);
       setRefreshToken(storedRefreshToken);
@@ -63,30 +64,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<string> => {
     try {
-      const response = await fetch("http://localhost:4000/api/v1/login", {
-        method: "POST",
+      const response = await fetch(`${API_URL}/api/v1/login`, {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "로그인 중 오류가 발생했습니다.");
+        throw new Error(errorData.message || '로그인 중 오류가 발생했습니다.');
       }
 
       const data = await response.json();
 
       setAccessToken(data.accessToken);
       setRefreshToken(data.refreshToken);
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
       setShouldFetchUserInfo(true);
 
       return data.accessToken;
     } catch (error) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       throw error;
     }
   };
@@ -95,21 +96,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setAccessToken(null);
     setRefreshToken(null);
     setUser(null);
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
   };
 
   const refreshAccessToken = async (): Promise<string | null> => {
-    const storedEmail = localStorage.getItem("email");
-    const storedPassword = localStorage.getItem("password");
+    const storedEmail = localStorage.getItem('email');
+    const storedPassword = localStorage.getItem('password');
 
     if (!storedEmail || !storedPassword) return null;
 
     try {
-      const response = await fetch("http://localhost:4000/api/v1/login", {
-        method: "POST",
+      const response = await fetch(`${API_URL}/api/v1/login`, {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email: storedEmail, password: storedPassword }),
       });
@@ -118,15 +119,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const data = await response.json();
         setAccessToken(data.accessToken);
         setRefreshToken(data.refreshToken);
-        localStorage.setItem("accessToken", data.accessToken);
-        localStorage.setItem("refreshToken", data.refreshToken);
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
         return data.accessToken;
       } else {
         logout();
         return null;
       }
     } catch (error) {
-      console.error("Failed to refresh token by re-login:", error);
+      console.error('Failed to refresh token by re-login:', error);
       logout();
       return null;
     }
@@ -140,9 +141,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           Authorization: `Bearer ${accessToken}`,
         },
       });
+      console.log('### here 1, userData:', userData);
       setUser(userData);
     } catch (error) {
-      if (error instanceof Error && error.message === "API error: 401") {
+      if (error instanceof Error && error.message === 'API error: 401') {
         const newToken = await refreshAccessToken();
         if (newToken) {
           await fetchUserInfo();
@@ -150,7 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           logout();
         }
       } else {
-        console.error("Failed to fetch user info:", error);
+        console.error('Failed to fetch user info:', error);
       }
     }
   };
@@ -161,18 +163,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       return await action();
     } catch (error) {
-      if (error instanceof Error && error.message === "API error: 401") {
+      if (error instanceof Error && error.message === 'API error: 401') {
         try {
           const newToken = await refreshAccessToken();
           if (newToken) {
             return await action();
           }
         } catch (refreshError) {
-          console.error("Error refreshing token:", refreshError);
+          console.error('Error refreshing token:', refreshError);
         }
-        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-        router.push("/login");
-        throw new Error("Authentication failed");
+        alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+        router.push('/login');
+        throw new Error('Authentication failed');
       }
       throw error;
     }
@@ -199,7 +201,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

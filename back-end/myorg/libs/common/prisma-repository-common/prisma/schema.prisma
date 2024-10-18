@@ -38,7 +38,8 @@ model User {
   updatedAt DateTime @updatedAt @db.Timestamptz(4)
   active    Boolean  @default(true)
 
-  profile Profile?
+  profile         Profile?
+  // lockerActionLogs LockerActionLog[]
 
   @@unique([email])
   @@unique([username])
@@ -69,6 +70,56 @@ model Profile {
   @@index([createdAt])
   @@index([updatedAt])
   @@map("profiles")
+}
+
+model LockerRoom {
+  id        Int      @id @default(autoincrement())
+  name      String
+  isDeleted Boolean  @default(false)
+  Locker    Locker[]
+
+  @@map("locker_rooms")
+}
+
+model Locker {
+  id           Int        @id @default(autoincrement())
+  name         String
+  lockerRoomId Int
+  lockerRoom   LockerRoom @relation(fields: [lockerRoomId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  isDeleted    Boolean    @default(false)
+
+  actionLogs LockerActionLog[]
+
+  @@map("lockers")
+}
+
+// assign, release, disable, enable
+model LockerAction {
+  id         Int               @id @default(autoincrement())
+  name       String
+  actionLogs LockerActionLog[]
+
+  @@unique([name])
+  @@index([name])
+  @@map("locker_actions")
+}
+
+model LockerActionLog {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @db.Timestamptz(4)
+  lockerId  Int
+  actionId  Int
+
+  userId        String?
+  reservationId Int?
+  reason        String?
+
+  locker Locker       @relation(fields: [lockerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  action LockerAction @relation(fields: [actionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  // user   User?        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  // reservation Reservation? @relatioØn(fields: [reservationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("locker_action_logs")
 }
 
 model Post {

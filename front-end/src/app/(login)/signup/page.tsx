@@ -1,6 +1,7 @@
 "use client";
 
 import Dialog from "@/app/components/Dialog";
+import { API_URL } from "@/constants";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -59,7 +60,7 @@ export default function SignupPage() {
       setLoading(true);
 
       try {
-        const response = await fetch("http://localhost:4000/api/v1/signup", {
+        const response = await fetch(`${API_URL}/api/v1/signup`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
