@@ -18,15 +18,15 @@ CREATE TABLE "lockers" (
 );
 
 -- CreateTable
-CREATE TABLE "LockerAction" (
+CREATE TABLE "locker_actions" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
 
-    CONSTRAINT "LockerAction_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "locker_actions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "LockerActionLog" (
+CREATE TABLE "locker_action_logs" (
     "id" SERIAL NOT NULL,
     "createdAt" TIMESTAMPTZ(4) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lockerId" INTEGER NOT NULL,
@@ -35,14 +35,20 @@ CREATE TABLE "LockerActionLog" (
     "reservationId" INTEGER,
     "reason" TEXT,
 
-    CONSTRAINT "LockerActionLog_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "locker_action_logs_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE INDEX "locker_actions_name_idx" ON "locker_actions"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "locker_actions_name_key" ON "locker_actions"("name");
 
 -- AddForeignKey
 ALTER TABLE "lockers" ADD CONSTRAINT "lockers_lockerRoomId_fkey" FOREIGN KEY ("lockerRoomId") REFERENCES "locker_rooms"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "LockerActionLog" ADD CONSTRAINT "LockerActionLog_lockerId_fkey" FOREIGN KEY ("lockerId") REFERENCES "lockers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "locker_action_logs" ADD CONSTRAINT "locker_action_logs_lockerId_fkey" FOREIGN KEY ("lockerId") REFERENCES "lockers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "LockerActionLog" ADD CONSTRAINT "LockerActionLog_actionId_fkey" FOREIGN KEY ("actionId") REFERENCES "LockerAction"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "locker_action_logs" ADD CONSTRAINT "locker_action_logs_actionId_fkey" FOREIGN KEY ("actionId") REFERENCES "locker_actions"("id") ON DELETE CASCADE ON UPDATE CASCADE;

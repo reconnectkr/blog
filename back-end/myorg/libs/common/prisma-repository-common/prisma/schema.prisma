@@ -98,6 +98,10 @@ model LockerAction {
   id         Int               @id @default(autoincrement())
   name       String
   actionLogs LockerActionLog[]
+
+  @@unique([name])
+  @@index([name])
+  @@map("locker_actions")
 }
 
 model LockerActionLog {
@@ -114,6 +118,8 @@ model LockerActionLog {
   action LockerAction @relation(fields: [actionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   // user   User?        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   // reservation Reservation? @relatioØn(fields: [reservationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("locker_action_logs")
 }
 
 model Post {
