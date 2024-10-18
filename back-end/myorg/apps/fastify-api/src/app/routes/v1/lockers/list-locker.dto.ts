@@ -48,14 +48,14 @@ export const ListLockerResponseSchema = z
     items: z
       .object({
         id: z.number(),
-        lockerRoomId: z.string(),
+        lockerRoomId: z.number(),
         name: z.string(),
         status: z.enum(LockerStatus),
         assignment: z
           .object({
             assignedAt: z.coerce.date(),
-            userId: z.number(),
-            reservationId: z.number(),
+            userId: z.string(),
+            reservationId: z.number().nullable(),
           })
           .nullable()
           .optional(),

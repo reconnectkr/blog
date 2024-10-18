@@ -1,15 +1,21 @@
 import { PrismaClient } from '@prisma/client';
+import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '@reconnect/zod-common';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { LockerTestData } from './commons';
+import {
+  getCurrentLockerStatus,
+  LOCKER_STATUS_AVAILABLE,
+  LOCKER_STATUS_OCCUPIED,
+} from './commons';
 import {
   GetLockerPathParamSchema,
   GetLockerResponse,
   GetLockerResponseSchema,
 } from './get-locker.dto';
 import {
+  ListLockerQueryStringSchema,
   ListLockerResponse,
-  ListLockerResponseSchema,
 } from './list-locker.dto';
+
 export default async function (fastify: FastifyInstance) {
   const prisma: PrismaClient = fastify.prisma;
 
@@ -17,109 +23,138 @@ export default async function (fastify: FastifyInstance) {
     '/',
     // { onRequest: [fastify.authenticate] },
     async (req: FastifyRequest, res: FastifyReply) => {
-      const lockers = LockerTestData;
-      const resBody: ListLockerResponse = ListLockerResponseSchema.parse({
-        items: lockers,
+      const validatedQueryString = ListLockerQueryStringSchema.parse(req.query);
+      const { filter, orderBy } = validatedQueryString;
+      const page = validatedQueryString.page ?? 1;
+      const pageSize: number =
+        validatedQueryString.pageSize !== undefined
+          ? Math.min(validatedQueryString.pageSize, PAGE_SIZE_MAX)
+          : PAGE_SIZE_DEFAULT;
+      const lockers = await prisma.locker.findMany({
+        where: { ...filter, isDeleted: false },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: orderBy,
+        include: {
+          actionLogs: {
+            select: {
+              createdAt: true,
+              reservationId: true,
+              userId: true,
+              action: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 1,
+          },
+        },
       });
+
+      const resBody: ListLockerResponse = {
+        items: lockers.map((locker) => {
+          const lockerStatus =
+            locker.actionLogs.length === 1
+              ? getCurrentLockerStatus(locker.actionLogs[0].action.name)
+              : LOCKER_STATUS_AVAILABLE;
+          return {
+            id: locker.id,
+            name: locker.name,
+            lockerRoomId: locker.lockerRoomId,
+            status: lockerStatus,
+            assignment:
+              lockerStatus === LOCKER_STATUS_OCCUPIED
+                ? {
+                    assignedAt: locker.actionLogs[0].createdAt,
+                    userId: locker.actionLogs[0].userId!,
+                    reservationId: locker.actionLogs[0].reservationId ?? null,
+                  }
+                : null,
+          };
+        }),
+      };
       res.send(resBody);
-
-      // const validatedQueryString = ListLockerQueryStringSchema.parse(req.query);
-      // const { filter, orderBy } = validatedQueryString;
-      // const page = validatedQueryString.page ?? 1;
-      // const pageSize: number =
-      //   validatedQueryString.pageSize !== undefined
-      //     ? Math.min(validatedQueryString.pageSize, PAGE_SIZE_MAX)
-      //     : PAGE_SIZE_DEFAULT;
-      // const Lockers = await prisma.Locker.findMany({
-      //   where: filter,
-      //   skip: (page - 1) * pageSize,
-      //   take: pageSize,
-      //   orderBy: orderBy,
-      //   include: {
-      //     inventoryUnit: {
-      //       select: {
-      //         id: true,
-      //         name: true,
-      //       },
-      //     },
-      //     category: {
-      //       select: {
-      //         id: true,
-      //         name: true,
-      //       },
-      //     },
-      //   },
-      // });
-
-      // const resBody: ListLockerResponse = {
-      //   items: Lockers,
-      // };
-      // res.send(resBody);
     }
   );
 
-  fastify.get<{ Params: { LockerId: string } }>(
-    '/:LockerId',
+  fastify.get<{ Params: { lockerId: string } }>(
+    '/:lockerId',
     // { onRequest: [fastify.authenticate] },
     async (
-      req: FastifyRequest<{ Params: { LockerId: string } }>,
+      req: FastifyRequest<{ Params: { lockerId: string } }>,
       res: FastifyReply
     ) => {
-      const LockerId = GetLockerPathParamSchema.parse(req.params.LockerId);
-
-      const lockers = LockerTestData;
-      const locker = lockers.find((locker) => locker.id === LockerId);
+      const lockerId = GetLockerPathParamSchema.parse(req.params.lockerId);
+      const locker = await prisma.locker.findUnique({
+        where: { id: lockerId },
+        include: {
+          actionLogs: {
+            select: {
+              createdAt: true,
+              reservationId: true,
+              userId: true,
+              action: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 1,
+          },
+        },
+      });
 
       if (!locker) {
         res.status(404).send({ message: 'Locker not found' });
         return;
       }
 
-      const resBody: GetLockerResponse = GetLockerResponseSchema.parse(locker);
+      const lockerStatus =
+        locker.actionLogs.length === 1
+          ? getCurrentLockerStatus(locker.actionLogs[0].action.name)
+          : LOCKER_STATUS_AVAILABLE;
+
+      const resBody: GetLockerResponse = GetLockerResponseSchema.parse({
+        id: locker.id,
+        name: locker.name,
+        lockerRoomId: locker.lockerRoomId,
+        status: lockerStatus,
+        assignment:
+          lockerStatus === LOCKER_STATUS_OCCUPIED
+            ? {
+                assignedAt: locker.actionLogs[0].createdAt,
+                userId: locker.actionLogs[0].userId!,
+                reservationId: locker.actionLogs[0].reservationId ?? null,
+              }
+            : null,
+      });
       res.send(resBody);
-
-      // const Locker = await prisma.Locker.findUnique({
-      //   where: { id: LockerId },
-      //   include: {
-      //     inventoryUnit: {
-      //       select: {
-      //         id: true,
-      //         name: true,
-      //       },
-      //     },
-      //     category: {
-      //       select: {
-      //         id: true,
-      //         name: true,
-      //       },
-      //     },
-      //   },
-      // });
-
-      // if (!Locker) {
-      //   res.status(404).send({ message: 'Locker not found' });
-      //   return;
-      // }
-
-      // const resBody: GetLockerResponse = Locker;
-      // res.send(resBody);
     }
   );
 
-  // fastify.delete<{ Params: { LockerId: string } }>(
-  //   '/:LockerId',
+  // fastify.delete<{ Params: { lockerId: string } }>(
+  //   '/:lockerId',
   //   { onRequest: [fastify.authenticate] },
   //   async (
-  //     req: FastifyRequest<{ Params: { LockerId: string } }>,
+  //     req: FastifyRequest<{ Params: { lockerId: string } }>,
   //     res: FastifyReply
   //   ) => {
-  //     const LockerId = DeleteLockerPathParamSchema.parse(
-  //       req.params.LockerId
+  //     const lockerId = DeleteLockerPathParamSchema.parse(
+  //       req.params.lockerId
   //     );
 
   //     try {
-  //       await prisma.Locker.delete({
-  //         where: { id: LockerId },
+  //       await prisma.locker.delete({
+  //         where: { id: lockerId },
   //       });
   //       const resBody: DeleteLockerResponse = undefined;
   //       res.status(204).send(resBody);
@@ -151,39 +186,39 @@ export default async function (fastify: FastifyInstance) {
   //     const validatedBody = CreateLockerRequestSchema.parse(req.body);
 
   //     type LockerCreateBody = Prisma.Args<
-  //       typeof prisma.Locker,
+  //       typeof prisma.locker,
   //       'create'
   //     >['data'];
 
-  //     const LockerCreateBody: LockerCreateBody = {
+  //     const lockerCreateBody: LockerCreateBody = {
   //       ...validatedBody,
   //       createdBy: req.user.userId,
   //       updatedBy: req.user.userId,
   //     };
 
-  //     const Locker = await prisma.Locker.create({
-  //       data: LockerCreateBody,
+  //     const locker = await prisma.locker.create({
+  //       data: lockerCreateBody,
   //     });
 
-  //     const resBody: CreateLockerResponse = Locker;
+  //     const resBody: CreateLockerResponse = locker;
   //     res.status(201).send(resBody);
   //   }
   // );
 
-  // fastify.patch<{ Params: { LockerId: number } }>(
-  //   '/:LockerId',
+  // fastify.patch<{ Params: { lockerId: number } }>(
+  //   '/:lockerId',
   //   { onRequest: [fastify.authenticate] },
   //   async (
-  //     req: FastifyRequest<{ Params: { LockerId: number } }>,
+  //     req: FastifyRequest<{ Params: { lockerId: number } }>,
   //     res: FastifyReply
   //   ) => {
-  //     const LockerId = UpdateLockerPathParamSchema.parse(
-  //       req.params.LockerId
+  //     const lockerId = UpdateLockerPathParamSchema.parse(
+  //       req.params.lockerId
   //     );
   //     const validatedBody = UpdateLockerRequestSchema.parse(req.body);
   //     try {
-  //       const updatedLocker = await prisma.Locker.update({
-  //         where: { id: LockerId },
+  //       const updatedLocker = await prisma.locker.update({
+  //         where: { id: lockerId },
   //         data: {
   //           ...validatedBody,
   //           updatedBy: req.user.userId,

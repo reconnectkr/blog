@@ -1,4 +1,48 @@
-export const LockerStatus = ['unassigned', 'assigned', 'disabled'] as const;
+export const LOCKER_STATUS_AVAILABLE = 'available';
+export const LOCKER_STATUS_OCCUPIED = 'occupied';
+export const LOCKER_STATUS_DISABLED = 'disabled';
+
+export const LockerStatus = [
+  LOCKER_STATUS_AVAILABLE,
+  LOCKER_STATUS_OCCUPIED,
+  LOCKER_STATUS_DISABLED,
+] as const;
+
+export const LOCKER_ACTION_NAME_ASSIGN = 'assign';
+export const LOCKER_ACTION_NAME_RELEASE = 'release';
+export const LOCKER_ACTION_NAME_DISABLE = 'disable';
+export const LOCKER_ACTION_NAME_ENABLE = 'enable';
+export const LockerActionName = [
+  LOCKER_ACTION_NAME_ASSIGN,
+  LOCKER_ACTION_NAME_RELEASE,
+  LOCKER_ACTION_NAME_DISABLE,
+  LOCKER_ACTION_NAME_ENABLE,
+] as const;
+
+export function getNextLockerStatus(actionName: string) {
+  if (actionName === LOCKER_ACTION_NAME_ASSIGN) {
+    return LOCKER_STATUS_OCCUPIED;
+  } else if (actionName === LOCKER_ACTION_NAME_RELEASE) {
+    return LOCKER_STATUS_AVAILABLE;
+  } else if (actionName === LOCKER_ACTION_NAME_DISABLE) {
+    return LOCKER_STATUS_DISABLED;
+  } else if (actionName === LOCKER_ACTION_NAME_ENABLE) {
+    return LOCKER_STATUS_AVAILABLE;
+  }
+}
+
+export function getCurrentLockerStatus(lastActionName: string) {
+  if (lastActionName === LOCKER_ACTION_NAME_ASSIGN) {
+    return LOCKER_STATUS_OCCUPIED;
+  } else if (lastActionName === LOCKER_ACTION_NAME_RELEASE) {
+    return LOCKER_STATUS_AVAILABLE;
+  } else if (lastActionName === LOCKER_ACTION_NAME_DISABLE) {
+    return LOCKER_STATUS_DISABLED;
+  } else if (lastActionName === LOCKER_ACTION_NAME_ENABLE) {
+    return LOCKER_STATUS_AVAILABLE;
+  }
+  return LOCKER_STATUS_AVAILABLE;
+}
 
 export const LockerTestData = [
   {
