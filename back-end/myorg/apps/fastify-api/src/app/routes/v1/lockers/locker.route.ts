@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '@reconnect/zod-common';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import {
@@ -6,6 +7,10 @@ import {
   LOCKER_STATUS_AVAILABLE,
   LOCKER_STATUS_OCCUPIED,
 } from './commons';
+import {
+  DeleteLockerPathParamSchema,
+  DeleteLockerResponse,
+} from './delete-locker.dto';
 import {
   GetLockerPathParamSchema,
   GetLockerResponse,
@@ -141,43 +146,44 @@ export default async function (fastify: FastifyInstance) {
     }
   );
 
-  // fastify.delete<{ Params: { lockerId: string } }>(
-  //   '/:lockerId',
-  //   { onRequest: [fastify.authenticate] },
-  //   async (
-  //     req: FastifyRequest<{ Params: { lockerId: string } }>,
-  //     res: FastifyReply
-  //   ) => {
-  //     const lockerId = DeleteLockerPathParamSchema.parse(
-  //       req.params.lockerId
-  //     );
+  fastify.delete<{ Params: { lockerId: string } }>(
+    '/:lockerId',
+    // { onRequest: [fastify.authenticate] },
+    async (
+      req: FastifyRequest<{ Params: { lockerId: string } }>,
+      res: FastifyReply
+    ) => {
+      const lockerId = DeleteLockerPathParamSchema.parse(req.params.lockerId);
 
-  //     try {
-  //       await prisma.locker.delete({
-  //         where: { id: lockerId },
-  //       });
-  //       const resBody: DeleteLockerResponse = undefined;
-  //       res.status(204).send(resBody);
-  //     } catch (error) {
-  //       if (error instanceof PrismaClientKnownRequestError) {
-  //         // {
-  //         //   name: 'PrismaClientKnownRequestError',
-  //         //   code: 'P2025',
-  //         //   clientVersion: '5.19.1',
-  //         //   meta: {
-  //         //     modelName: 'Locker',
-  //         //     cause: 'Record to delete does not exist.',
-  //         //   },
-  //         // };
-  //         const knownRequestError: PrismaClientKnownRequestError = error;
-  //         if (knownRequestError.code === 'P2025') {
-  //           res.status(404).send({ message: 'Locker not found' });
-  //           return;
-  //         }
-  //       }
-  //     }
-  //   }
-  // );
+      try {
+        await prisma.locker.update({
+          where: { id: lockerId },
+          data: {
+            isDeleted: true,
+          },
+        });
+        const resBody: DeleteLockerResponse = undefined;
+        res.status(204).send(resBody);
+      } catch (error) {
+        if (error instanceof PrismaClientKnownRequestError) {
+          // {
+          //   name: 'PrismaClientKnownRequestError',
+          //   code: 'P2025',
+          //   clientVersion: '5.19.1',
+          //   meta: {
+          //     modelName: 'Locker',
+          //     cause: 'Record to delete does not exist.',
+          //   },
+          // };
+          const knownRequestError: PrismaClientKnownRequestError = error;
+          if (knownRequestError.code === 'P2025') {
+            res.status(404).send({ message: 'Locker not found' });
+            return;
+          }
+        }
+      }
+    }
+  );
 
   // fastify.post(
   //   '/',
