@@ -6,6 +6,7 @@ import {
   StringFilterSchema,
 } from '@reconnect/zod-common';
 import { z } from 'zod';
+import { LockerStatus } from './commons';
 
 export const ListLockerOrderBySchema = z.object({
   id: AscendingDecendingSchema.optional(),
@@ -49,7 +50,7 @@ export const ListLockerResponseSchema = z
         id: z.number(),
         lockerRoomId: z.string(),
         name: z.string(),
-        status: z.enum(['unassigned', 'assigned', 'disabled']),
+        status: z.enum(LockerStatus),
         assignment: z
           .object({
             assignedAt: z.coerce.date(),
@@ -63,84 +64,3 @@ export const ListLockerResponseSchema = z
   })
   .strict();
 export type ListLockerResponse = z.infer<typeof ListLockerResponseSchema>;
-
-// Test data array
-export const testListLockerResponse: ListLockerResponse = {
-  items: [
-    {
-      id: 1,
-      lockerRoomId: 'A101',
-      name: 'Locker 1',
-      status: 'unassigned',
-    },
-    {
-      id: 2,
-      lockerRoomId: 'A101',
-      name: 'Locker 2',
-      status: 'assigned',
-      assignment: {
-        assignedAt: new Date('2023-05-01T10:00:00Z'),
-        userId: 1001,
-        reservationId: 5001,
-      },
-    },
-    {
-      id: 3,
-      lockerRoomId: 'B202',
-      name: 'Locker 3',
-      status: 'unassigned',
-    },
-    {
-      id: 4,
-      lockerRoomId: 'B202',
-      name: 'Locker 4',
-      status: 'disabled',
-    },
-    {
-      id: 5,
-      lockerRoomId: 'C303',
-      name: 'Locker 5',
-      status: 'assigned',
-      assignment: {
-        assignedAt: new Date('2023-05-02T14:30:00Z'),
-        userId: 1002,
-        reservationId: 5002,
-      },
-    },
-    {
-      id: 6,
-      lockerRoomId: 'C303',
-      name: 'Locker 6',
-      status: 'unassigned',
-    },
-    {
-      id: 7,
-      lockerRoomId: 'D404',
-      name: 'Locker 7',
-      status: 'assigned',
-      assignment: {
-        assignedAt: new Date('2023-05-03T09:15:00Z'),
-        userId: 1003,
-        reservationId: 5003,
-      },
-    },
-    {
-      id: 8,
-      lockerRoomId: 'D404',
-      name: 'Locker 8',
-      status: 'unassigned',
-    },
-    {
-      id: 9,
-      lockerRoomId: 'E505',
-      name: 'Locker 9',
-      status: 'disabled',
-    },
-    {
-      id: 10,
-      lockerRoomId: 'E505',
-      name: 'Locker 10',
-      status: 'unassigned',
-    },
-  ],
-};

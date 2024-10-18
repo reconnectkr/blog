@@ -1,7 +1,15 @@
 import { PrismaClient } from '@prisma/client';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { ListLockerResponse, testListLockerResponse } from './list-locker.dto';
-
+import { LockerTestData } from './commons';
+import {
+  GetLockerPathParamSchema,
+  GetLockerResponse,
+  GetLockerResponseSchema,
+} from './get-locker.dto';
+import {
+  ListLockerResponse,
+  ListLockerResponseSchema,
+} from './list-locker.dto';
 export default async function (fastify: FastifyInstance) {
   const prisma: PrismaClient = fastify.prisma;
 
@@ -9,7 +17,10 @@ export default async function (fastify: FastifyInstance) {
     '/',
     // { onRequest: [fastify.authenticate] },
     async (req: FastifyRequest, res: FastifyReply) => {
-      const resBody: ListLockerResponse = testListLockerResponse;
+      const lockers = LockerTestData;
+      const resBody: ListLockerResponse = ListLockerResponseSchema.parse({
+        items: lockers,
+      });
       res.send(resBody);
 
       // const validatedQueryString = ListLockerQueryStringSchema.parse(req.query);
@@ -47,43 +58,53 @@ export default async function (fastify: FastifyInstance) {
     }
   );
 
-  // fastify.get<{ Params: { LockerId: string } }>(
-  //   '/:LockerId',
-  //   { onRequest: [fastify.authenticate] },
-  //   async (
-  //     req: FastifyRequest<{ Params: { LockerId: string } }>,
-  //     res: FastifyReply
-  //   ) => {
-  //     const LockerId = GetLockerPathParamSchema.parse(
-  //       req.params.LockerId
-  //     );
-  //     const Locker = await prisma.Locker.findUnique({
-  //       where: { id: LockerId },
-  //       include: {
-  //         inventoryUnit: {
-  //           select: {
-  //             id: true,
-  //             name: true,
-  //           },
-  //         },
-  //         category: {
-  //           select: {
-  //             id: true,
-  //             name: true,
-  //           },
-  //         },
-  //       },
-  //     });
+  fastify.get<{ Params: { LockerId: string } }>(
+    '/:LockerId',
+    // { onRequest: [fastify.authenticate] },
+    async (
+      req: FastifyRequest<{ Params: { LockerId: string } }>,
+      res: FastifyReply
+    ) => {
+      const LockerId = GetLockerPathParamSchema.parse(req.params.LockerId);
 
-  //     if (!Locker) {
-  //       res.status(404).send({ message: 'Locker not found' });
-  //       return;
-  //     }
+      const lockers = LockerTestData;
+      const locker = lockers.find((locker) => locker.id === LockerId);
 
-  //     const resBody: GetLockerResponse = Locker;
-  //     res.send(resBody);
-  //   }
-  // );
+      if (!locker) {
+        res.status(404).send({ message: 'Locker not found' });
+        return;
+      }
+
+      const resBody: GetLockerResponse = GetLockerResponseSchema.parse(locker);
+      res.send(resBody);
+
+      // const Locker = await prisma.Locker.findUnique({
+      //   where: { id: LockerId },
+      //   include: {
+      //     inventoryUnit: {
+      //       select: {
+      //         id: true,
+      //         name: true,
+      //       },
+      //     },
+      //     category: {
+      //       select: {
+      //         id: true,
+      //         name: true,
+      //       },
+      //     },
+      //   },
+      // });
+
+      // if (!Locker) {
+      //   res.status(404).send({ message: 'Locker not found' });
+      //   return;
+      // }
+
+      // const resBody: GetLockerResponse = Locker;
+      // res.send(resBody);
+    }
+  );
 
   // fastify.delete<{ Params: { LockerId: string } }>(
   //   '/:LockerId',
